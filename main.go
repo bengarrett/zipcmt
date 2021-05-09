@@ -108,6 +108,8 @@ func flags(ver, v *bool) {
 	}
 	// print help if no arguments are given
 	if len(flag.Args()) == 0 {
+		log.Println("zipcmt requires at least one directory to scan")
+		fmt.Println()
 		flag.Usage()
 		os.Exit(0)
 	}
