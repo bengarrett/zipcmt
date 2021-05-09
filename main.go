@@ -43,7 +43,7 @@ func main() {
 		help()
 	}
 	flag.Parse()
-	flags(*ver, *v)
+	flags(ver, v)
 	// parse aliases
 	if *r {
 		recursive = true
@@ -89,7 +89,7 @@ func main() {
 	fmt.Print(c.Status())
 }
 
-func flags(ver, v bool) {
+func flags(ver, v *bool) {
 	// convience for when a help or version flag is passed as an argument
 	for _, arg := range flag.Args() {
 		switch strings.ToLower(arg) {
@@ -101,14 +101,14 @@ func flags(ver, v bool) {
 			os.Exit(0)
 		}
 	}
+	// print version information
+	if *ver || *v {
+		info()
+		os.Exit(0)
+	}
 	// print help if no arguments are given
 	if len(flag.Args()) == 0 {
 		flag.Usage()
-		os.Exit(0)
-	}
-	// print version information
-	if ver || v {
-		info()
 		os.Exit(0)
 	}
 }
