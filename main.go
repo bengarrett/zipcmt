@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"text/tabwriter"
 
@@ -24,8 +25,8 @@ func main() {
 	var recursive bool
 	flag.BoolVar(&c.Print, "print", false, "print the comments to the terminal")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding instead of Unicode")
-	flag.BoolVar(&c.ExportFile, "export", false, "save the comment to a textfile stored alongside the archive (use at your own risk)")
-	flag.StringVar(&c.ExportDir, "exportdir", "", "save the comment to a textfile stored in this directory")
+	flag.BoolVar(&c.ExportFile, "export", false, "save comments to textfiles stored alongside the archive (use at your own risk)")
+	flag.StringVar(&c.ExportDir, "exportdir", "", "save comments to textfiles stored in this directory")
 	flag.BoolVar(&recursive, "recursive", false, "recursively walk through all subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
@@ -127,10 +128,17 @@ func help() {
 	fmt.Fprintln(os.Stderr, "# scan the working directory and only show unique comments")
 	fmt.Fprintf(os.Stderr, "    zipcmt --export ~%sDownloads\t\t", ps)
 	fmt.Fprintln(os.Stderr, "# scan the download directory and save all comments")
-	fmt.Fprintf(os.Stderr, "    zipcmt -r -d=~%stext ~%sDownloads\t", ps, ps)
-	fmt.Fprintln(os.Stderr, "# recursively scan the download directory and save all comments to a directory")
-	fmt.Fprintf(os.Stderr, "    zipcmt -n -p -q -r %s | less\t\t", ps)
-	fmt.Fprintln(os.Stderr, "# scan the whole system and view unique comments in a page reader")
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(os.Stderr, "    zipcmt -r -d=C:\\text C:\t")
+		fmt.Fprintln(os.Stderr, "# recursively scan the C: drive and save all comments to the text directory")
+		fmt.Fprintf(os.Stderr, "    zipcmt -n -p -q -r C: | less\t\t")
+		fmt.Fprintln(os.Stderr, "# scan the whole system and view unique comments in a page reader")
+	} else {
+		fmt.Fprintf(os.Stderr, "    zipcmt -r -d=~%stext ~%sDownloads\t", ps, ps)
+		fmt.Fprintln(os.Stderr, "# recursively scan the download directory and save all comments to a directory")
+		fmt.Fprintf(os.Stderr, "    zipcmt -n -p -q -r %s | less\t\t", ps)
+		fmt.Fprintln(os.Stderr, "# scan the whole system and view unique comments in a page reader")
+	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Options:")
 	w := tabwriter.NewWriter(os.Stderr, 0, 0, 4, ' ', 0)
