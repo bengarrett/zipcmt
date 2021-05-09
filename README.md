@@ -18,12 +18,6 @@ A zip archive comment batch viewer and extractor.
 
 ### Packages
 
-##### macOS [Homebrew](https://brew.sh/)
-```sh
-brew install bengarrett/homebrew-myip/zipcmt
-```
-
-
 [APK (Alpine package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.apk)
 ```sh
 wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.apk
@@ -99,7 +93,7 @@ ls -l test/
 zipcmt --print --quiet test/
 #   This is an example test comment for zipcmt.
 ```
-##### No dupes example
+##### No duplicate comments example
 ```sh
 cp test/test-with-comment.zip test/test-with-comment-1.zip
 
@@ -132,10 +126,10 @@ cat ~/test-with-comment-zipcomment.txt
 
 ```sh
 # clone this repo
-git clone git@github.com:bengarrett/myip.git
+git clone git@github.com:bengarrett/zipcmt.git
 
 # access the repo
-cd myip
+cd zipcmt
 
 # target and build the app for the host system
 go build
@@ -149,17 +143,3 @@ env GOOS=openbsd GOARCH=amd64 go build
 # target and build for Linux on MIPS CPUs
 env GOOS=linux GOARCH=mips64 go build
 ```
-
----
-
-#### MyIP uses the following online APIs.
-
-- [ipify API](https://www.ipify.org)
-- [MYIP.com](https://www.myip.com)
-- [Workshell MyIP](https://www.my-ip.io)
-- [SeeIP](https://seeip.org)
-
-The IP region data is from GeoLite2 created by MaxMind, available from
-[maxmind.com](https://www.maxmind.com).
-
-I found [Steve Azzopardi's excellent _import "context"_](https://steveazz.xyz/blog/import-context/) post useful for understanding context library in Go.
