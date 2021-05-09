@@ -1,5 +1,5 @@
-// Package zipcmmmt is a viewer and an extractor of zip archive comments
-package zipcmmt
+// Package zipcmt is a viewer and an extractor of zip archive comments
+package zipcmt
 
 import (
 	"archive/zip"
@@ -113,10 +113,10 @@ func (c *Config) Scan(root string) error {
 			stdout(cmmt)
 		}
 		if c.ExportFile {
-			go save(path, cmmt, c.Overwrite)
+			save(path, cmmt, c.Overwrite)
 		}
 		if c.ExportDir != "" {
-			go save(filepath.Join(c.ExportDir, file.Name()), cmmt, c.Overwrite)
+			save(filepath.Join(c.ExportDir, file.Name()), cmmt, c.Overwrite)
 		}
 	}
 	return nil
@@ -159,6 +159,9 @@ func (c *Config) Scans(root string) error {
 		if c.ExportFile {
 			fmt.Println(path)
 			save(path, cmmt, c.Overwrite)
+		}
+		if c.ExportDir != "" {
+			save(filepath.Join(c.ExportDir, d.Name()), cmmt, c.Overwrite)
 		}
 		return err
 	})
@@ -208,15 +211,15 @@ func (c Config) Status() string {
 
 // Save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt textfiles are skipped.
-func save(path, cmmt string, ow bool) {
+func save(path, cmmt string, ow bool) bool {
 	if cmmt == "" {
-		return
+		return false
 	}
 	name := strings.TrimSuffix(path, filepath.Ext(path)) + filename
 	if !ow {
 		if s, err := os.Stat(name); err == nil {
 			fmt.Printf("export skipped, file already exists: %s (%dB)\n", name, s.Size())
-			return
+			return false
 		}
 	}
 	f, err := os.Create(name)
@@ -224,6 +227,9 @@ func save(path, cmmt string, ow bool) {
 		log.Println(err)
 	}
 	defer f.Close()
+	if cmmt[len(cmmt)-1:] != "\n" {
+		cmmt += "\n"
+	}
 	if i, err := f.Write([]byte(cmmt)); err != nil {
 		log.Println(err)
 	} else if i == 0 {
@@ -231,6 +237,7 @@ func save(path, cmmt string, ow bool) {
 			log.Println(err1)
 		}
 	}
+	return true
 }
 
 // stdout prints the cmmt with an ANSI reset command.

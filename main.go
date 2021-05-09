@@ -10,7 +10,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/bengarrett/zipcmt/zipcmmt"
+	"github.com/bengarrett/zipcmt/zipcmt"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	var c zipcmmt.Config
+	var c zipcmt.Config
 	var recursive bool
 	flag.BoolVar(&c.Print, "print", false, "print the comments to the terminal")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding instead of Unicode")

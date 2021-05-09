@@ -1,5 +1,5 @@
-// Package zipcmmmt is a viewer and an extractor of zip archive comments
-package zipcmmt
+// Package zipcmt is a viewer and an extractor of zip archive comments
+package zipcmt
 
 import (
 	"fmt"
