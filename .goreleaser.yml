@@ -14,9 +14,6 @@ builds:
   - id: Linux Intel
     goos: ['linux']
     goarch: ['amd64']
-  - id: Linux arm
-    goos: ['linux']
-    goarch: ['arm', 'arm64']
   - id: macOS
     goos: ['darwin']
     goarch: ['amd64', 'arm64']
@@ -42,16 +39,6 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     replacements:
       amd64: Intel
-      linux: Linux
-  - id: Linux arm
-    builds: ['Linux arm']
-    format: tar.gz
-    files:
-    - none*
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      arm: arm32_
-      arm64: arm64
       linux: Linux
   - id: macOS
     builds: ['macOS']
