@@ -76,7 +76,7 @@ func main() {
 			if err := c.Scans(root); err != nil {
 				log.Println(err)
 			}
-			c.Status()
+			fmt.Print(c.Status())
 		}
 		return
 	}
@@ -86,7 +86,7 @@ func main() {
 			log.Println(err)
 		}
 	}
-	c.Status()
+	fmt.Print(c.Status())
 }
 
 func flags(ver, v bool) {

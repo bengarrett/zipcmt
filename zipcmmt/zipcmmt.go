@@ -54,6 +54,9 @@ func (c *Config) Clean() error {
 	return nil
 }
 
+// Read the named zip file and return the zip comment.
+// The Raw config will return the comment in its original legacy encoding.
+// Otherwise the comment is returned as Unicode text.
 func (c Config) Read(name string) (cmmt string, err error) {
 	r, err := zip.OpenReader(name)
 	if err != nil {
@@ -76,6 +79,7 @@ func (c Config) Read(name string) (cmmt string, err error) {
 	return "", nil
 }
 
+// Scan the root directory for zip archives and parse any found comments.
 func (c *Config) Scan(root string) error {
 	hashes := map[[32]byte]bool{}
 	files, err := os.ReadDir(root)
@@ -97,18 +101,16 @@ func (c *Config) Scan(root string) error {
 			continue
 		}
 		if c.NoDupes {
-			hash := sha256.Sum256([]byte(cmmt))
+			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
 			if hashes[hash] {
 				continue
 			}
 			hashes[hash] = true
 		}
 		c.cmmts++
-		c.Separator(path)
+		fmt.Print(c.Separator(path))
 		if c.Print {
-			if err := stdout(cmmt); err != nil {
-				fmt.Println(err)
-			}
+			stdout(cmmt)
 		}
 		if c.ExportFile {
 			go save(path, cmmt, c.Overwrite)
@@ -120,6 +122,7 @@ func (c *Config) Scan(root string) error {
 	return nil
 }
 
+// Scans the root directory plus all subdirectories for zip archives and parse any found comments.
 func (c *Config) Scans(root string) error {
 	hashes := map[[32]byte]bool{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
@@ -142,19 +145,16 @@ func (c *Config) Scans(root string) error {
 			return nil
 		}
 		if c.NoDupes {
-			hash := sha256.Sum256([]byte(cmmt))
+			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
 			if hashes[hash] {
 				return nil
 			}
 			hashes[hash] = true
 		}
 		c.cmmts++
-		c.Separator(path)
+		fmt.Print(c.Separator(path))
 		if c.Print {
-			if err1 := stdout(cmmt); err != nil {
-				fmt.Println(err1)
-				return nil
-			}
+			stdout(cmmt)
 		}
 		if c.ExportFile {
 			fmt.Println(path)
@@ -165,9 +165,10 @@ func (c *Config) Scans(root string) error {
 	return err
 }
 
-func (c Config) Separator(name string) {
+// Separator prints and stylises the named file.
+func (c Config) Separator(name string) string {
 	if !c.Print || c.Quiet {
-		return
+		return ""
 	}
 	const fileID = 45
 	const pointer = " \u2500\u2500 "
@@ -178,15 +179,15 @@ func (c Config) Separator(name string) {
 	}
 	l := len(pointer) + len(name)
 	if l >= fileID {
-		fmt.Printf("%s%s\n", pointer, name)
-		return
+		return fmt.Sprintf("%s%s\n", pointer, name)
 	}
-	fmt.Printf("\n%s%s %s\u2510\n", pointer, name, strings.Repeat("\u2500", fileID-l))
+	return fmt.Sprintf("\n%s%s %s\u2510\n", pointer, name, strings.Repeat("\u2500", fileID-l))
 }
 
-func (c Config) Status() {
+// Status summarizes the zip files scan.
+func (c Config) Status() string {
 	if c.Quiet {
-		return
+		return ""
 	}
 	a, cm, unq := "archive", "comment", ""
 	if c.zips != 1 {
@@ -198,12 +199,15 @@ func (c Config) Status() {
 	if c.NoDupes {
 		unq = "unique "
 	}
+	s := ""
 	if c.Print {
-		fmt.Println()
+		s = "\n"
 	}
-	fmt.Printf("Scanned %d zip %s and found %d %s%s\n", c.zips, a, c.cmmts, unq, cm)
+	return s + fmt.Sprintf("Scanned %d zip %s and found %d %s%s\n", c.zips, a, c.cmmts, unq, cm)
 }
 
+// Save a zip cmmt to the file path.
+// Unless the overwrite argument is set, any previous cmmt textfiles are skipped.
 func save(path, cmmt string, ow bool) {
 	if cmmt == "" {
 		return
@@ -229,12 +233,13 @@ func save(path, cmmt string, ow bool) {
 	}
 }
 
-func stdout(cmmt string) error {
+// stdout prints the cmmt with an ANSI reset command.
+func stdout(cmmt string) {
 	const resetCmd = "\033[0m"
 	fmt.Printf("%s%s\n", cmmt, resetCmd)
-	return nil
 }
 
+// valid checks that the named file is a known zip archive.
 func valid(name string) bool {
 	const z = ".zip"
 	return filepath.Ext(strings.ToLower(name)) == z
