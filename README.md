@@ -7,13 +7,13 @@ A zip archive comment batch viewer and extractor.
 
 ## Downloads
 
-- [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/myip_Windows_Intel.zip)
-- [macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/myip_macOS_Intel.tar.gz
-), [or for the Apple M chip](https://github.com/bengarrett/zipcmt/releases/latest/download/myip_macOS_M-series.tar.gz
+- [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip)
+- [macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS_Intel.tar.gz
+), [or for the Apple M chip](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS_M-series.tar.gz
 )
-- [FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/myip_FreeBSD_Intel.tar.gz
+- [FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
 )
-- [Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/myip_Linux_Intel.tar.gz
+- [Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_Intel.tar.gz
 )
 
 ### Packages
