@@ -4,6 +4,7 @@ package main
 
 import (
 	"archive/zip"
+	"crypto/sha256"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	rt "github.com/bengarrett/retrotxtgo/lib/convert"
+	"github.com/bengarrett/retrotxtgo/lib/convert"
 )
 
 type config struct {
@@ -24,7 +25,10 @@ type config struct {
 	overwrite  bool
 	raw        bool
 	recursive  bool
-	unicode    bool
+	print      bool
+	quiet      bool
+	zips       int
+	cmmts      int
 }
 
 var (
@@ -35,24 +39,46 @@ var (
 
 func main() {
 	var c config
-	flag.BoolVar(&c.unicode, "unicode", false, "convert the zip comment to Unicode and print to the terminal")
-	flag.BoolVar(&c.raw, "raw", false, "print the zip comment to the terminal")
-	flag.BoolVar(&c.exportfile, "export", false, "save the zip comment to a textfile stored alongside the archive")
-	flag.StringVar(&c.exportdir, "exportdir", "", "save the zip comment to a unique textfile stored this directory")
+	flag.BoolVar(&c.print, "print", false, "print the comments to the terminal")
+	flag.BoolVar(&c.raw, "raw", false, "use the original comment text encoding instead of Unicode")
+	flag.BoolVar(&c.exportfile, "export", false, "save the comment to a textfile stored alongside the archive (use at your own risk)")
+	flag.StringVar(&c.exportdir, "exportdir", "", "save the comment to a textfile stored in this directory")
 	flag.BoolVar(&c.recursive, "recursive", false, "recursively walk through all subdirectories while scanning for zip archives")
-	flag.BoolVar(&c.overwrite, "overwrite", false, "overwrite any previously exported zip comment textfiles")
+	flag.BoolVar(&c.overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
+	flag.BoolVar(&c.quiet, "quiet", false, "suppress zipcmt feedback except for errors")
+	flag.BoolVar(&c.nodupes, "nodupes", false, "no duplicate comments, only show unique finds")
 	ver := flag.Bool("version", false, "version and information for this program")
 	r := flag.Bool("r", false, "alias for recursive")
-	u := flag.Bool("u", false, "alias for unicode")
+	u := flag.Bool("p", false, "alias for print")
 	e := flag.Bool("e", false, "alias for export")
 	d := flag.String("d", "", "alias for exportdir")
 	o := flag.Bool("o", false, "alias for overwrite")
 	v := flag.Bool("v", false, "alias for version")
+	q := flag.Bool("q", false, "alias for quiet")
+	n := flag.Bool("n", false, "alias for nodupes")
 
 	flag.Usage = func() {
 		help()
 	}
 	flag.Parse()
+
+	// help convience for when a help flag is passed as an argument
+	for _, arg := range flag.Args() {
+		arg = strings.ToLower(arg)
+		if arg == "-h" || arg == "-help" || arg == "--help" {
+			flag.Usage()
+			return
+		}
+		if arg == "-v" || arg == "-version" || arg == "--version" {
+			info()
+			return
+		}
+	}
+	// print help if no arguments are given
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		return
+	}
 
 	// version information
 	if *ver || *v {
@@ -64,7 +90,7 @@ func main() {
 		c.recursive = true
 	}
 	if *u {
-		c.unicode = true
+		c.print = true
 	}
 	if *e {
 		c.exportfile = true
@@ -75,23 +101,48 @@ func main() {
 	if *o {
 		c.overwrite = true
 	}
-	// print help if no arguments are given
-	if len(flag.Args()) == 0 {
-		flag.Usage()
-		return
+	if *q {
+		c.quiet = true
 	}
-	// if err := c.scan(flag.Arg(0)); err != nil {
-	// 	log.Println(err)
-	// }
+	if *n {
+		c.nodupes = true
+	}
+	// export to directory sanity check
+	if c.exportdir != "" {
+		c.exportdir = filepath.Clean(c.exportdir)
+		p := strings.Split(c.exportdir, string(filepath.Separator))
+		if p[0] == "~" {
+			hd, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			c.exportdir = strings.Replace(c.exportdir, "~", hd, 1)
+		}
+		s, err := os.Stat(c.exportdir)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if !s.IsDir() {
+			log.Fatalln(os.ErrInvalid)
+		}
+	}
+	// recursive directory scan
 	if c.recursive {
-		if err := c.scans(flag.Arg(0)); err != nil {
-			log.Println(err)
+		for _, root := range flag.Args() {
+			if err := c.scans(root); err != nil {
+				log.Println(err)
+			}
+			c.status()
 		}
 		return
 	}
-	if err := c.scan(flag.Arg(0)); err != nil {
-		log.Println(err)
+	// default flat directory scan
+	for _, root := range flag.Args() {
+		if err := c.scan(root); err != nil {
+			log.Println(err)
+		}
 	}
+	c.status()
 }
 
 func help() {
@@ -100,17 +151,18 @@ func help() {
 	fmt.Fprintln(os.Stderr, "    zipcmt [options] [directories]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Examples:")
-	fmt.Fprintln(os.Stderr, "    zipcmt --unicode .\t\t\t# scan the working directory and show any found comments")
-	fmt.Fprintln(os.Stderr, "    zipcmt --export ~/Downloads\t\t# scan the download directory and save any comments")
-	fmt.Fprintln(os.Stderr, "    zipcmt -r -d=~/text ~/Downloads \t# recursively scan the download directory and save comments to a directory")
+	fmt.Fprintln(os.Stderr, "    zipcmt --print --nodupes .\t\t# scan the working directory and only show unique comments")
+	fmt.Fprintln(os.Stderr, "    zipcmt --export ~/Downloads\t\t# scan the download directory and save all comments")
+	fmt.Fprintln(os.Stderr, "    zipcmt -r -d=~/text ~/Downloads\t# recursively scan the download directory and save all comments to a directory")
+	fmt.Fprintln(os.Stderr, "    zipcmt -n -p -q -r / | less\t\t# scan the whole system and view unique comments in a page reader")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Options:")
 	w := tabwriter.NewWriter(os.Stderr, 0, 0, 4, ' ', 0)
 	f = flag.Lookup("recursive")
 	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("raw")
-	fmt.Fprintf(w, "        --%v\t%v\n", f.Name, f.Usage)
-	f = flag.Lookup("unicode")
+	f = flag.Lookup("nodupes")
+	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	f = flag.Lookup("print")
 	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
 	f = flag.Lookup("export")
@@ -120,9 +172,14 @@ func help() {
 	f = flag.Lookup("overwrite")
 	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
-	fmt.Fprintln(w, "    -h, --help\tshow this list of options")
+	f = flag.Lookup("raw")
+	fmt.Fprintf(w, "        --%v\t%v\n", f.Name, f.Usage)
+	fmt.Fprintln(w, "                \t")
+	f = flag.Lookup("quiet")
+	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	f = flag.Lookup("version")
 	fmt.Fprintf(w, "    -%v, --%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	fmt.Fprintln(w, "    -h, --help\tshow this list of options")
 	fmt.Fprintln(w)
 	w.Flush()
 }
@@ -149,17 +206,19 @@ func info() {
 	fmt.Printf("path:  %s\n", exe)
 }
 
-func (c config) scan(root string) error {
+func (c *config) scan(root string) error {
+	hashes := map[[32]byte]bool{}
 	files, err := os.ReadDir(root)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		name := filepath.Join(root, file.Name())
-		if !valid(name) {
+		path := filepath.Join(root, file.Name())
+		if !valid(path) {
 			continue
 		}
-		cmmt, err := read(name)
+		c.zips = c.zips + 1
+		cmmt, err := c.read(path)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -167,20 +226,32 @@ func (c config) scan(root string) error {
 		if len(cmmt) == 0 {
 			continue
 		}
-		separator(name)
-		if c.raw {
-			fmt.Println(cmmt)
+		if c.nodupes {
+			hash := sha256.Sum256([]byte(cmmt))
+			if hashes[hash] {
+				continue
+			}
+			hashes[hash] = true
 		}
-		if c.unicode {
-			if err := unicode(cmmt); err != nil {
+		c.cmmts = c.cmmts + 1
+		c.separator(path)
+		if c.print {
+			if err := c.stdout(cmmt); err != nil {
 				fmt.Println(err)
 			}
+		}
+		if c.exportfile {
+			go save(path, cmmt, c.overwrite)
+		}
+		if c.exportdir != "" {
+			go save(filepath.Join(c.exportdir, file.Name()), cmmt, c.overwrite)
 		}
 	}
 	return nil
 }
 
-func (c config) scans(root string) error {
+func (c *config) scans(root string) error {
+	hashes := map[[32]byte]bool{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
@@ -191,7 +262,8 @@ func (c config) scans(root string) error {
 		if !valid(d.Name()) {
 			return nil
 		}
-		cmmt, err := read(path)
+		c.zips = c.zips + 1
+		cmmt, err := c.read(path)
 		if err != nil {
 			fmt.Println(err)
 			return nil
@@ -199,15 +271,24 @@ func (c config) scans(root string) error {
 		if len(cmmt) == 0 {
 			return nil
 		}
-		separator(path)
-		if c.raw {
-			fmt.Println(cmmt)
+		if c.nodupes {
+			hash := sha256.Sum256([]byte(cmmt))
+			if hashes[hash] {
+				return nil
+			}
+			hashes[hash] = true
 		}
-		if c.unicode {
-			if err := unicode(cmmt); err != nil {
+		c.cmmts = c.cmmts + 1
+		c.separator(path)
+		if c.print {
+			if err := c.stdout(cmmt); err != nil {
 				fmt.Println(err)
 				return nil
 			}
+		}
+		if c.exportfile {
+			fmt.Println(path)
+			save(path, cmmt, c.overwrite)
 		}
 		return err
 	})
@@ -223,32 +304,63 @@ func valid(name string) bool {
 	return false
 }
 
-func read(name string) (cmmt string, err error) {
+func (c config) read(name string) (cmmt string, err error) {
 	r, err := zip.OpenReader(name)
 	if err != nil {
-		return "", err
+		return "", nil
 	}
 	defer r.Close()
 	if cmmt := r.Comment; cmmt != "" {
 		if strings.TrimSpace(cmmt) == "" {
 			return "", nil
 		}
+		if !c.raw {
+			b, err := convert.D437(cmmt)
+			if err != nil {
+				return "", err
+			}
+			cmmt = string(b)
+		}
 		return cmmt, nil
 	}
 	return "", nil
 }
 
-func unicode(cmmt string) error {
-	const resetCmd = "\033[0m"
-	b, err := rt.D437(cmmt)
-	if err != nil {
-		return err
+func save(path, cmmt string, ow bool) {
+	if cmmt == "" {
+		return
 	}
-	fmt.Printf("%s%s\n", b, resetCmd)
+	name := strings.TrimSuffix(path, filepath.Ext(path)) + "-zipcomment.txt"
+	if !ow {
+		if s, err := os.Stat(name); err == nil {
+			fmt.Printf("export skipped, file already exists: %s (%dB)\n", name, s.Size())
+			return
+		}
+	}
+	f, err := os.Create(name)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+	if i, err := f.Write([]byte(cmmt)); err != nil {
+		log.Println(err)
+	} else if i == 0 {
+		if err1 := os.Remove(name); err != nil {
+			log.Println(err1)
+		}
+	}
+}
+
+func (c config) stdout(cmmt string) error {
+	const resetCmd = "\033[0m"
+	fmt.Printf("%s%s\n", cmmt, resetCmd)
 	return nil
 }
 
-func separator(name string) {
+func (c config) separator(name string) {
+	if !c.print || c.quiet {
+		return
+	}
 	const file_id = 45
 	const pointer = " \u2500\u2500 "
 	if h, err := os.UserHomeDir(); err == nil {
@@ -262,4 +374,21 @@ func separator(name string) {
 		return
 	}
 	fmt.Printf("\n%s%s %s\u2510\n", pointer, name, strings.Repeat("\u2500", file_id-l))
+}
+
+func (c config) status() {
+	if c.quiet {
+		return
+	}
+	a, cm, unq := "archive", "comment", ""
+	if c.zips != 1 {
+		a += "s"
+	}
+	if c.cmmts != 1 {
+		cm += "s"
+	}
+	if c.nodupes {
+		unq = "unique "
+	}
+	fmt.Printf("Scanned %d zip %s and found %d %s%s\n", c.zips, a, c.cmmts, unq, cm)
 }
