@@ -7,12 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
+	"github.com/gookit/color"
 )
 
 type Config struct {
@@ -29,7 +29,13 @@ type Config struct {
 
 const filename = "-zipcomment.txt"
 
-var ErrExpFile = errors.New("export directory is a file")
+var (
+	ErrIsFile  = errors.New("directory is a file")
+	ErrMissing = errors.New("directory cannot be found")
+	ErrPath    = errors.New("directory path cannot be found or points to a file")
+	ErrPerm    = errors.New("directory access is blocked due to its permissions")
+	ErrValid   = errors.New("the operating system reports this directory is invalid")
+)
 
 // Clean the syntax of the target export directory path.
 func (c *Config) Clean() error {
@@ -44,11 +50,20 @@ func (c *Config) Clean() error {
 			c.ExportDir = strings.Replace(c.ExportDir, "~", hd, 1)
 		}
 		s, err := os.Stat(c.ExportDir)
+		if errors.Is(err, fs.ErrInvalid) {
+			return fmt.Errorf("%s: export %w", c.ExportDir, ErrValid)
+		}
+		if errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("%s: export %w", c.ExportDir, ErrMissing)
+		}
+		if errors.Is(err, fs.ErrPermission) {
+			return fmt.Errorf("%s: export %w", c.ExportDir, ErrPerm)
+		}
 		if err != nil {
-			return err
+			return fmt.Errorf("%s: export %w", c.ExportDir, err)
 		}
 		if !s.IsDir() {
-			return ErrExpFile
+			return fmt.Errorf("%s: export %w", c.ExportDir, ErrIsFile)
 		}
 	}
 	return nil
@@ -64,6 +79,9 @@ func (c Config) Read(name string) (cmmt string, err error) {
 	}
 	defer r.Close()
 	if cmmt := r.Comment; cmmt != "" {
+		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
+			return "", nil
+		}
 		if strings.TrimSpace(cmmt) == "" {
 			return "", nil
 		}
@@ -94,7 +112,7 @@ func (c *Config) Scan(root string) error {
 		c.zips++
 		cmmt, err := c.Read(path)
 		if err != nil {
-			fmt.Println(err)
+			color.Error.Tips(fmt.Sprint(err))
 			continue
 		}
 		if cmmt == "" {
@@ -138,7 +156,7 @@ func (c *Config) Scans(root string) error {
 		c.zips++
 		cmmt, err := c.Read(path)
 		if err != nil {
-			fmt.Println(err)
+			color.Error.Tips(fmt.Sprint(err))
 			return nil
 		}
 		if cmmt == "" {
@@ -157,7 +175,6 @@ func (c *Config) Scans(root string) error {
 			stdout(cmmt)
 		}
 		if c.ExportFile {
-			fmt.Println(path)
 			save(path, cmmt, c.Overwrite)
 		}
 		if c.ExportDir != "" {
@@ -206,7 +223,10 @@ func (c Config) Status() string {
 	if c.Print {
 		s = "\n"
 	}
-	return s + fmt.Sprintf("Scanned %d zip %s and found %d %s%s\n", c.zips, a, c.cmmts, unq, cm)
+	return s + color.Secondary.Sprint("Scanned ") +
+		color.Primary.Sprintf("%d %s", c.zips, a) +
+		color.Secondary.Sprint(" and found ") +
+		color.Primary.Sprintf("%d %s%s\n", c.cmmts, unq, cm)
 }
 
 // Save a zip cmmt to the file path.
@@ -218,23 +238,23 @@ func save(path, cmmt string, ow bool) bool {
 	name := strings.TrimSuffix(path, filepath.Ext(path)) + filename
 	if !ow {
 		if s, err := os.Stat(name); err == nil {
-			fmt.Printf("export skipped, file already exists: %s (%dB)\n", name, s.Size())
+			color.Info.Tips(fmt.Sprintf("export skipped, file already exists: %s (%dB)\n", name, s.Size()))
 			return false
 		}
 	}
 	f, err := os.Create(name)
 	if err != nil {
-		log.Println(err)
+		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
 	}
 	defer f.Close()
 	if cmmt[len(cmmt)-1:] != "\n" {
 		cmmt += "\n"
 	}
 	if i, err := f.Write([]byte(cmmt)); err != nil {
-		log.Println(err)
+		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
 	} else if i == 0 {
-		if err1 := os.Remove(name); err != nil {
-			log.Println(err1)
+		if err1 := os.Remove(name); err1 != nil {
+			color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err1)))
 		}
 	}
 	return true
