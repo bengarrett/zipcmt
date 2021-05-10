@@ -150,9 +150,9 @@ func help() {
 	} else {
 		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -export ~%sDownloads\t\t", ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the download directory and save all comments"))
-		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -r -d=~%stext ~%sDownloads\t", ps, ps))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -d=~%stext ~%sDownloads\t", ps, ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the download directory and save all comments to a directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -r -n -q %s | less\t\t", ps))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -n -q %s | less\t\t", ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the whole system and view unique comments in a page reader"))
 	}
 	fmt.Fprintln(os.Stderr, "")

@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
@@ -97,9 +98,12 @@ func (c Config) Read(name string) (cmmt string, err error) {
 	return "", nil
 }
 
+type export map[string]bool
+
 // Scan the root directory for zip archives and parse any found comments.
 func (c *Config) Scan(root string) error {
 	hashes := map[[32]byte]bool{}
+	exports := export{}
 	files, err := os.ReadDir(root)
 	if err != nil {
 		return err
@@ -131,10 +135,11 @@ func (c *Config) Scan(root string) error {
 			stdout(cmmt)
 		}
 		if c.ExportFile {
-			save(path, cmmt, c.Overwrite)
+			save(exportName(path), cmmt, c.Overwrite)
 		}
 		if c.ExportDir != "" {
-			save(filepath.Join(c.ExportDir, file.Name()), cmmt, c.Overwrite)
+			path = exports.unique(path, c.ExportDir)
+			save(path, cmmt, c.Overwrite)
 		}
 	}
 	return nil
@@ -142,6 +147,7 @@ func (c *Config) Scan(root string) error {
 
 // Scans the root directory plus all subdirectories for zip archives and parse any found comments.
 func (c *Config) Scans(root string) error {
+	exports := export{}
 	hashes := map[[32]byte]bool{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -175,10 +181,11 @@ func (c *Config) Scans(root string) error {
 			stdout(cmmt)
 		}
 		if c.ExportFile {
-			save(path, cmmt, c.Overwrite)
+			save(exportName(path), cmmt, c.Overwrite)
 		}
 		if c.ExportDir != "" {
-			save(filepath.Join(c.ExportDir, d.Name()), cmmt, c.Overwrite)
+			path = exports.unique(path, c.ExportDir)
+			save(path, cmmt, c.Overwrite)
 		}
 		return err
 	})
@@ -224,18 +231,17 @@ func (c Config) Status() string {
 		s = "\n"
 	}
 	return s + color.Secondary.Sprint("Scanned ") +
-		color.Primary.Sprintf("%d %s", c.zips, a) +
+		color.Primary.Sprintf("%d zip %s", c.zips, a) +
 		color.Secondary.Sprint(" and found ") +
 		color.Primary.Sprintf("%d %s%s\n", c.cmmts, unq, cm)
 }
 
 // Save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt textfiles are skipped.
-func save(path, cmmt string, ow bool) bool {
+func save(name, cmmt string, ow bool) bool {
 	if cmmt == "" {
 		return false
 	}
-	name := strings.TrimSuffix(path, filepath.Ext(path)) + filename
 	if !ow {
 		if s, err := os.Stat(name); err == nil {
 			color.Info.Tips(fmt.Sprintf("export skipped, file already exists: %s (%dB)\n", name, s.Size()))
@@ -260,6 +266,14 @@ func save(path, cmmt string, ow bool) bool {
 	return true
 }
 
+// exportName returns a textfile filepath for the ExportFile config.
+func exportName(path string) string {
+	if path == "" {
+		return ""
+	}
+	return strings.TrimSuffix(path, filepath.Ext(path)) + filename
+}
+
 // stdout prints the cmmt with an ANSI reset command.
 func stdout(cmmt string) {
 	const resetCmd = "\033[0m"
@@ -270,4 +284,51 @@ func stdout(cmmt string) {
 func valid(name string) bool {
 	const z = ".zip"
 	return filepath.Ext(strings.ToLower(name)) == z
+}
+
+// unique checks the destination path against an export map.
+// The map contains a unique collection of previously used destination
+// paths, to avoid creating duplicate text filenames while using the
+// ExportDir config.
+func (exports export) unique(zipPath, dest string) string {
+	base := filepath.Base(zipPath)
+	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename
+	path := filepath.Join(dest, name)
+	if f := exports.find(path); f != path {
+		path = f
+	}
+	exports[path] = true
+	return path
+}
+
+// find searches for the name in the export map.
+// If no matches exist, the name is unique and returned.
+// Otherwise find attempts to append a `_1` suffix to the
+// name. If the name already has this suffix, the digit
+// is incrementally increased until a unique name is returned.
+func (e export) find(name string) string {
+	if !e[name] {
+		return name
+	}
+	i, new := 0, ""
+	for {
+		i++
+		ext := filepath.Ext(name)
+		base := strings.TrimSuffix(name, ext)
+		a := strings.Split(base, "_")
+		n, err := strconv.Atoi(a[len(a)-1])
+		if err == nil {
+			i = n
+			base = strings.Join(a[0:len(a)-1], "_")
+		}
+		suf := fmt.Sprintf("_%d", i+1)
+		new = fmt.Sprintf("%s%s%s", base, suf, ext)
+		if !e[new] {
+			return new
+		}
+		if i > 9999 {
+			break
+		}
+	}
+	return ""
 }

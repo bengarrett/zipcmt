@@ -1,39 +1,14 @@
 // Package zipcmt is a viewer and an extractor of zip archive comments
+
 package zipcmt
 
 import (
-	"fmt"
-	"log"
+	"os"
 	"strings"
 	"testing"
+
+	"github.com/gookit/color"
 )
-
-func ExampleRead() {
-	c := Config{
-		Raw: false,
-	}
-	s, err := c.Read("../test/test-with-comment.zip")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Print(s)
-	// Output:
-	//This is an example test comment for zipcmmt.
-	//
-}
-
-func ExampleScan() {
-	c := Config{
-		Print: true,
-		Quiet: true,
-	}
-	if err := c.Scan("../test"); err != nil {
-		log.Println(err)
-	}
-	// Output:
-	//This is an example test comment for zipcmmt.[0m
-	//
-}
 
 func TestConfig_Clean(t *testing.T) {
 	type fields struct {
@@ -56,6 +31,7 @@ func TestConfig_Clean(t *testing.T) {
 		{"missing", fields{ExportDir: "/no/such/directory"}, true},
 		{"file", fields{ExportDir: "../test/test.txt"}, true},
 		{"dir", fields{ExportDir: "../test"}, false},
+		{"home", fields{ExportDir: "~"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -138,6 +114,11 @@ func TestConfig_Scans(t *testing.T) {
 		zips       int
 		cmmts      int
 	}
+	tmp, err := os.MkdirTemp(os.TempDir(), "zipcmtscanstest")
+	if err != nil {
+		t.Errorf("Cannot create temp directory: %v", err)
+	}
+	defer os.RemoveAll(tmp)
 	tests := []struct {
 		name    string
 		fields  fields
@@ -147,6 +128,7 @@ func TestConfig_Scans(t *testing.T) {
 		{"no root", fields{}, "", true},
 		{"bad root", fields{}, "../test/missing", true},
 		{"test dir", fields{NoDupes: true}, "../test", false},
+		{"exportdir", fields{NoDupes: true, ExportDir: tmp}, "../test", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,6 +211,7 @@ func TestConfig_Separator(t *testing.T) {
 }
 
 func TestConfig_Status(t *testing.T) {
+	color.Enable = false
 	type fields struct {
 		ExportDir  string
 		ExportFile bool
@@ -245,9 +228,9 @@ func TestConfig_Status(t *testing.T) {
 		fields fields
 		want   string
 	}{
-		{"none", fields{}, "Scanned 0 zip archives and found 0 comments\n"},
-		{"one", fields{zips: 1, cmmts: 1}, "Scanned 1 zip archive and found 1 comment\n"},
-		{"multi", fields{zips: 5, cmmts: 2}, "Scanned 5 zip archives and found 2 comments\n"},
+		{"none", fields{}, "Scanned 0 zip archives and found 0 comments"},
+		{"one", fields{zips: 1, cmmts: 1}, "Scanned 1 zip archive and found 1 comment"},
+		{"multi", fields{zips: 5, cmmts: 2}, "Scanned 5 zip archives and found 2 comments"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -262,8 +245,8 @@ func TestConfig_Status(t *testing.T) {
 				zips:       tt.fields.zips,
 				cmmts:      tt.fields.cmmts,
 			}
-			if got := c.Status(); got != tt.want {
-				t.Errorf("Config.Status() = %v, want %v", got, tt.want)
+			if got := strings.TrimSpace(c.Status()); got != tt.want {
+				t.Errorf("Config.Status() = \ngot:  %v,\nwant: %v", got, tt.want)
 			}
 		})
 	}
@@ -284,6 +267,55 @@ func Test_valid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := valid(tt.fname); got != tt.want {
 				t.Errorf("valid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_export_find(t *testing.T) {
+	files := export{
+		"file.txt":   true,
+		"file_1.txt": true,
+		"file_2.txt": true,
+		"file_3.txt": true,
+	}
+	tests := []struct {
+		name  string
+		e     export
+		fname string
+		want  string
+	}{
+		{"none", files, "", ""},
+		{"unique", files, "somefile.txt", "somefile.txt"},
+		{"conflict", files, "file.txt", "file_4.txt"},
+		{"conflict 3", files, "file_3.txt", "file_4.txt"},
+		{"conflict 4", files, "file_4.txt", "file_4.txt"},
+		{"underscores", files, "file_000_1.txt", "file_000_1.txt"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.find(tt.fname); got != tt.want {
+				t.Errorf("export.unique() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_exportName(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want string
+	}{
+		{"empty", "", ""},
+		{"name", "myfile.zip", "myfile-zipcomment.txt"},
+		{"windows", "C:\\Users\\retro\\myfile.zip", "C:\\Users\\retro\\myfile-zipcomment.txt"},
+		{"*nix", "/home/retro/myfile.zip", "/home/retro/myfile-zipcomment.txt"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := exportName(tt.path); got != tt.want {
+				t.Errorf("exportName() = %v, want %v", got, tt.want)
 			}
 		})
 	}
