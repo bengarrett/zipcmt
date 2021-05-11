@@ -48,28 +48,29 @@ scoop install bengarrett/zipcmt
 zipcmt -help
 
 Usage:
-    zipcmt [options] [directories]
+    zipcmt [options] <directories>
 
 Examples:
-    zipcmt --print --nodupes .		# scan the working directory and only show unique comments
-    zipcmt --export ~/Downloads		# scan the download directory and save all comments
+    zipcmt -nodupes .       		# scan the current directory and only show unique comments
+    zipcmt -recursive -exportdir=~/text ~/Downloads
+                            		# recursively scan the download directory and save found comments to a directory
     zipcmt -r -d=~/text ~/Downloads	# recursively scan the download directory and save all comments to a directory
-    zipcmt -n -p -q -r / | less		# scan the whole system and view unique comments in a page reader
+    zipcmt -n -q -r / | less		# scan the whole system and view unique comments in a page reader
 
 Options:
-    -r, --recursive    recursively walk through all subdirectories while scanning for zip archives
-    -n, --nodupes      no duplicate comments, only show unique finds
-    -p, --print        print the comments to the terminal
+    -r, -recursive              recursively walk through all subdirectories while scanning for zip archives
+    -n, -nodupes                no duplicate comments, only show unique finds
+    -p, -noprint                do not print comments to the terminal
 
-    -e, --export       save the comment to a textfile stored alongside the archive (use at your own risk)
-    -d, --exportdir    save the comment to a textfile stored in this directory
-    -o, --overwrite    overwrite any previously exported comment textfiles
+    -e, -export                 save the comment to a textfile stored alongside the archive (use at your own risk)
+    -d, -exportdir=DIRECTORY    save the comment to a textfile stored in this directory
+    -o, -overwrite              any previously exported comment textfiles
 
-        --raw          use the original comment text encoding instead of Unicode
+        -raw                    use the original comment text encoding instead of Unicode
 
-    -q, --quiet        suppress zipcmt feedback except for errors
-    -v, --version      version and information for this program
-    -h, --help         show this list of options
+    -q, -quiet                  suppress zipcmt feedback except for errors
+    -v, -version                version and information for this program
+    -h, -help                   show this list of options
 ```
 
 ##### Print example
@@ -77,7 +78,7 @@ Options:
 ls -l test/
 # test-no-comment.zip  test-with-comment.zip  test.txt
 
-zipcmt --print test/
+zipcmt test/
 
 #  ── test/test-with-comment.zip ───────────┐
 #    This is an example test comment for zipcmt.
@@ -90,7 +91,7 @@ zipcmt --print test/
 ls -l test/
 # test-no-comment.zip  test-with-comment.zip  test.txt
 
-zipcmt --print --quiet test/
+zipcmt --quiet test/
 #   This is an example test comment for zipcmt.
 ```
 ##### No duplicate comments example
@@ -100,7 +101,7 @@ cp test/test-with-comment.zip test/test-with-comment-1.zip
 ls -l test/
 # test-no-comment.zip  test-with-comment-1.zip test-with-comment.zip  test.txt
 
-zipcmt --print --nodupes test/
+zipcmt --nodupes test/
 
 #  ── test/test-with-comment-1.zip ─────────┐
 #    This is an example test comment for zipcmt.
