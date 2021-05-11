@@ -1,5 +1,6 @@
-// Package main is a batch viewer and extractor for large collections of zip archives.
 // © Ben Garrett https://github.com/bengarrett/zipcmt
+
+// Zipcmt is the super-fast, batch, zip file comment viewer, and extractor.
 package main
 
 import (
@@ -80,7 +81,7 @@ func main() {
 	// recursive directory scan
 	if recursive {
 		for _, root := range flag.Args() {
-			if err := c.Scans(root); err != nil {
+			if err := c.Walk(root); err != nil {
 				color.Error.Tips(fmt.Sprint(err))
 			}
 			fmt.Print(c.Status())

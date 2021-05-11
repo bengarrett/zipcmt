@@ -1,3 +1,5 @@
+// © Ben Garrett https://github.com/bengarrett/zipcmt
+
 package zipcmt
 
 import (

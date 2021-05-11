@@ -1,4 +1,6 @@
-// Package zipcmt is a viewer and an extractor of zip archive comments
+// © Ben Garrett https://github.com/bengarrett/zipcmt
+
+// Package zipcmt is a viewer and an extractor of zip archive comments.
 package zipcmt
 
 import (
@@ -147,8 +149,8 @@ func (c *Config) Scan(root string) error {
 	return nil
 }
 
-// Scans the root directory plus all subdirectories for zip archives and parse any found comments.
-func (c *Config) Scans(root string) error {
+// Walk the root directory plus all subdirectories for zip archives and parse any found comments.
+func (c *Config) Walk(root string) error {
 	exports, hashes := export{}, hash{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {

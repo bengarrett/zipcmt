@@ -1,4 +1,4 @@
-// Package zipcmt is a viewer and an extractor of zip archive comments
+// © Ben Garrett https://github.com/bengarrett/zipcmt
 
 package zipcmt
 
@@ -161,7 +161,7 @@ func TestConfig_Scans(t *testing.T) {
 				zips:       tt.fields.zips,
 				cmmts:      tt.fields.cmmts,
 			}
-			if err := c.Scans(tt.root); (err != nil) != tt.wantErr {
+			if err := c.Walk(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
