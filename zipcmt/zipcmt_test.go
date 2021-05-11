@@ -168,7 +168,7 @@ func TestConfig_Scans(t *testing.T) {
 	}
 }
 
-func TestConfig_Separator(t *testing.T) {
+func TestConfig_separator(t *testing.T) {
 	type fields struct {
 		ExportDir  string
 		ExportFile bool
@@ -203,8 +203,8 @@ func TestConfig_Separator(t *testing.T) {
 				zips:       tt.fields.zips,
 				cmmts:      tt.fields.cmmts,
 			}
-			if got := strings.TrimSpace(c.Separator(tt.fname)); got != tt.want {
-				t.Errorf("Config.Separator() = %v, want %v", got, tt.want)
+			if got := strings.TrimSpace(c.separator(tt.fname)); got != tt.want {
+				t.Errorf("Config.separator() = %v, want %v", got, tt.want)
 			}
 		})
 	}

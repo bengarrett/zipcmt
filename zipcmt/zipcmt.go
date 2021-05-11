@@ -134,7 +134,7 @@ func (c *Config) Scan(root string) error {
 			hashes[hash] = true
 		}
 		c.cmmts++
-		fmt.Print(c.Separator(path))
+		fmt.Print(c.separator(path))
 		if c.Print {
 			stdout(cmmt)
 		}
@@ -179,7 +179,7 @@ func (c *Config) Walk(root string) error {
 			hashes[hash] = true
 		}
 		c.cmmts++
-		fmt.Print(c.Separator(path))
+		fmt.Print(c.separator(path))
 		if c.Print {
 			stdout(cmmt)
 		}
@@ -195,8 +195,8 @@ func (c *Config) Walk(root string) error {
 	return err
 }
 
-// Separator prints and stylises the named file.
-func (c Config) Separator(name string) string {
+// separator prints and stylises the named file.
+func (c Config) separator(name string) string {
 	if !c.Print || c.Quiet {
 		return ""
 	}
