@@ -20,14 +20,16 @@ var (
 	date    = "unset" // nolint: gochecknoglobals
 )
 
+const winOS = "windows"
+
 func main() {
 	var c zipcmt.Config
-	var noprint bool
-	var recursive bool
+	var noprint, recursive = false, false
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding instead of Unicode")
-	flag.BoolVar(&c.ExportFile, "export", false, fmt.Sprintf("save comments to textfiles stored alongside the archive (%s)", color.Danger.Sprint("use at your own risk")))
-	flag.StringVar(&c.ExportDir, "exportdir", "", "save comments to textfiles stored in this directory")
+	flag.BoolVar(&c.ExportFile, "export", false, fmt.Sprintf("save the comments to textfiles stored alongside the archive (%s)",
+		color.Danger.Sprint("use at your own risk")))
+	flag.StringVar(&c.ExportDir, "exportdir", "", "save the comments to unique textfiles stored in this directory")
 	flag.BoolVar(&recursive, "recursive", false, "recursively walk through all subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
@@ -113,7 +115,7 @@ func flags(ver, v *bool) {
 	}
 	// print help if no arguments are given
 	if len(flag.Args()) == 0 {
-		if runtime.GOOS == "windows" {
+		if runtime.GOOS == winOS {
 			color.Warn.Println("zipcmt requires at least one directory or drive letter to scan")
 		} else {
 			color.Warn.Println("zipcmt requires at least one directory to scan")
@@ -129,7 +131,7 @@ func help() {
 	var f *flag.Flag
 	const ps = string(os.PathSeparator)
 	fmt.Fprintln(os.Stderr, "Usage:")
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == winOS {
 		fmt.Fprintln(os.Stderr, "    zipcmt [options] <directories or drive letters>")
 	} else {
 		fmt.Fprintln(os.Stderr, "    zipcmt [options] <directories>")
@@ -138,18 +140,18 @@ func help() {
 	fmt.Fprintln(os.Stderr, "Examples:")
 	fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -nodupes .\t\t\t"))
 	fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and only show unique comments"))
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == winOS {
 		if hd, err := os.UserHomeDir(); err == nil {
-			fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -recursive -export %s%sDownloads\t\t", hd, ps))
-			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# recursively scan the download directory and save all comments"))
+			fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -recursive -exportdir=C:\\text %s%sDownloads\t\t", hd, ps))
+			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# recursively scan the download directory and save found comments to the C:\\text directory"))
 		}
-		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -r -d=C:\\text\\ C:\t\t"))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the C: drive and save all comments to the directory"))
+		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -r -d=C:\\text C:\t\t"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the C: drive and save any found comments to the C:\\text directory"))
 		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -r -n -q C: D: | more\t"))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the C: plus the D: drive and view unique comments in a page reader"))
 	} else {
-		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -export ~%sDownloads\t\t", ps))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the download directory and save all comments"))
+		fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -recursive -exportdir=~%stext ~%sDownloads\t\t", ps, ps))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# recursively scan the download directory and save found comments to a directory"))
 		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -d=~%stext ~%sDownloads\t", ps, ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the download directory and save all comments to a directory"))
 		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -n -q %s | less\t\t", ps))
@@ -165,11 +167,11 @@ func help() {
 	f = flag.Lookup("noprint")
 	fmt.Fprintf(w, "    -p, -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
-	f = flag.Lookup("export")
-	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	f = flag.Lookup("exportdir")
-	fmt.Fprintf(w, "    -%v, -%v\t%v\n", "d", f.Name, f.Usage)
+	fmt.Fprintf(w, "    -%v, -%v=DIRECTORY\t%v\n", "d", f.Name, f.Usage)
 	f = flag.Lookup("overwrite")
+	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	f = flag.Lookup("export")
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
 	f = flag.Lookup("raw")
