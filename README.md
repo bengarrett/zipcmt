@@ -3,9 +3,16 @@
 [![goreleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml) &nbsp;
 [![Go Reference](https://pkg.go.dev/badge/github.com/bengarrett/zipcmt.svg)](https://pkg.go.dev/github.com/bengarrett/zipcmt)
 
-A zip archive comment batch viewer and extractor.
+Zipcmt is the super-fast, batch, zip file comment viewer, and extractor.
+
+- Using a modern PC with the zip files stored on a solid-state drive, zipcmt handles many thousands of archives per second.
+- Comments convert to Unicode text for easy viewing, editing, or web hosting.<br>
+<small>* comments can also be left as-is in their original legacy text encoding.</small>
+- Never see duplicate comments to avoid those annoying lists of identical site adverts.
 
 ## Downloads
+
+<small>zipcmt is a standalone (portable) terminal application and doesn't require installation.</small>
 
 - [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip)
 - [macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS_Intel.tar.gz
@@ -62,9 +69,9 @@ Options:
     -n, -nodupes                no duplicate comments, only show unique finds
     -p, -noprint                do not print comments to the terminal
 
-    -e, -export                 save the comment to a textfile stored alongside the archive (use at your own risk)
     -d, -exportdir=DIRECTORY    save the comment to a textfile stored in this directory
     -o, -overwrite              any previously exported comment textfiles
+    -e, -export                 save the comment to a textfile stored alongside the archive (use at your own risk)
 
         -raw                    use the original comment text encoding instead of Unicode
 
