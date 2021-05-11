@@ -24,7 +24,7 @@ const winOS = "windows"
 
 func main() {
 	var c zipcmt.Config
-	var noprint, recursive = false, false
+	var noprint, recursive bool
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding instead of Unicode")
 	flag.BoolVar(&c.ExportFile, "export", false, fmt.Sprintf("save the comments to textfiles stored alongside the archive (%s)",

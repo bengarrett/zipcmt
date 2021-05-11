@@ -28,6 +28,11 @@ type Config struct {
 	cmmts      int
 }
 
+type (
+	export map[string]bool
+	hash   map[[32]byte]bool
+)
+
 const filename = "-zipcomment.txt"
 
 var (
@@ -98,12 +103,9 @@ func (c Config) Read(name string) (cmmt string, err error) {
 	return "", nil
 }
 
-type export map[string]bool
-
 // Scan the root directory for zip archives and parse any found comments.
 func (c *Config) Scan(root string) error {
-	hashes := map[[32]byte]bool{}
-	exports := export{}
+	exports, hashes := export{}, hash{}
 	files, err := os.ReadDir(root)
 	if err != nil {
 		return err
@@ -147,8 +149,7 @@ func (c *Config) Scan(root string) error {
 
 // Scans the root directory plus all subdirectories for zip archives and parse any found comments.
 func (c *Config) Scans(root string) error {
-	exports := export{}
-	hashes := map[[32]byte]bool{}
+	exports, hashes := export{}, hash{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
