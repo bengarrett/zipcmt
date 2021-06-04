@@ -18,7 +18,7 @@ import (
 
 var (
 	//go:embed embed/logo.txt
-	logo string
+	brand string
 
 	version = "0.0.0"
 	commit  = "unset" // nolint: gochecknoglobals
@@ -50,7 +50,7 @@ func main() {
 	u := flag.Bool("p", false, "alias for noprint")
 	v := flag.Bool("v", false, "alias for version")
 	flag.Usage = func() {
-		help()
+		help(true)
 	}
 	flag.Parse()
 	flags(ver, v)
@@ -126,15 +126,18 @@ func flags(ver, v *bool) {
 			color.Warn.Println("zipcmt requires at least one directory to scan")
 		}
 		fmt.Println()
-		flag.Usage()
+		help(false)
 		os.Exit(0)
 	}
 }
 
 // Help, usage and examples.
-func help() {
+func help(logo bool) {
 	var f *flag.Flag
 	const ps = string(os.PathSeparator)
+	if logo {
+		fmt.Fprintln(os.Stderr, brand)
+	}
 	fmt.Fprintln(os.Stderr, "Usage:")
 	if runtime.GOOS == winOS {
 		fmt.Fprintln(os.Stderr, "    zipcmt [options] <directories or drive letters>")
@@ -194,7 +197,7 @@ func help() {
 // Info prints out the program information and version.
 func info() {
 	const copyright = "\u00A9"
-	fmt.Println(logo)
+	fmt.Println(brand)
 	fmt.Printf("zipcmt v%s\n%s 2021 Ben Garrett, logo by sensenstahl\n", version, copyright)
 	fmt.Printf("https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Printf("build: %s (%s)\n", commit, date)
