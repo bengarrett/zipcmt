@@ -9,12 +9,12 @@ import (
 
 func ExampleConfig_Clean() {
 	c := Config{
-		ExportDir: "..//test///.",
+		Save: "..//test///.",
 	}
 	if err := c.Clean(); err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Print(c.ExportDir)
+	fmt.Print(c.Save)
 	// Output: ../test
 }
 
@@ -68,7 +68,7 @@ func ExampleConfig_Status() {
 	fmt.Print(c.Status())
 
 	c = Config{
-		NoDupes: true,
+		Dupes: true,
 	}
 	if err := c.Walk("../test"); err != nil {
 		log.Panicln(err)

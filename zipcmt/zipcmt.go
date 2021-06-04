@@ -13,15 +13,17 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
 	"github.com/gookit/color"
 )
 
 type Config struct {
-	ExportDir  string
+	Timer      time.Time
+	Save       string
 	ExportFile bool
-	NoDupes    bool
+	Dupes      bool
 	Overwrite  bool
 	Raw        bool
 	Print      bool
@@ -47,31 +49,31 @@ var (
 
 // Clean the syntax of the target export directory path.
 func (c *Config) Clean() error {
-	if c.ExportDir != "" {
-		c.ExportDir = filepath.Clean(c.ExportDir)
-		p := strings.Split(c.ExportDir, string(filepath.Separator))
+	if c.Save != "" {
+		c.Save = filepath.Clean(c.Save)
+		p := strings.Split(c.Save, string(filepath.Separator))
 		if p[0] == "~" {
 			hd, err := os.UserHomeDir()
 			if err != nil {
 				return err
 			}
-			c.ExportDir = strings.Replace(c.ExportDir, "~", hd, 1)
+			c.Save = strings.Replace(c.Save, "~", hd, 1)
 		}
-		s, err := os.Stat(c.ExportDir)
+		s, err := os.Stat(c.Save)
 		if errors.Is(err, fs.ErrInvalid) {
-			return fmt.Errorf("%s: export %w", c.ExportDir, ErrValid)
+			return fmt.Errorf("%s: export %w", c.Save, ErrValid)
 		}
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("%s: export %w", c.ExportDir, ErrMissing)
+			return fmt.Errorf("%s: export %w", c.Save, ErrMissing)
 		}
 		if errors.Is(err, fs.ErrPermission) {
-			return fmt.Errorf("%s: export %w", c.ExportDir, ErrPerm)
+			return fmt.Errorf("%s: export %w", c.Save, ErrPerm)
 		}
 		if err != nil {
-			return fmt.Errorf("%s: export %w", c.ExportDir, err)
+			return fmt.Errorf("%s: export %w", c.Save, err)
 		}
 		if !s.IsDir() {
-			return fmt.Errorf("%s: export %w", c.ExportDir, ErrIsFile)
+			return fmt.Errorf("%s: export %w", c.Save, ErrIsFile)
 		}
 	}
 	return nil
@@ -126,7 +128,7 @@ func (c *Config) Scan(root string) error {
 		if cmmt == "" {
 			continue
 		}
-		if c.NoDupes {
+		if !c.Dupes {
 			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
 			if hashes[hash] {
 				continue
@@ -141,8 +143,8 @@ func (c *Config) Scan(root string) error {
 		if c.ExportFile {
 			save(exportName(path), cmmt, c.Overwrite)
 		}
-		if c.ExportDir != "" {
-			path = exports.unique(path, c.ExportDir)
+		if c.Save != "" {
+			path = exports.unique(path, c.Save)
 			save(path, cmmt, c.Overwrite)
 		}
 	}
@@ -171,7 +173,7 @@ func (c *Config) Walk(root string) error {
 		if cmmt == "" {
 			return nil
 		}
-		if c.NoDupes {
+		if !c.Dupes {
 			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
 			if hashes[hash] {
 				return nil
@@ -186,8 +188,8 @@ func (c *Config) Walk(root string) error {
 		if c.ExportFile {
 			save(exportName(path), cmmt, c.Overwrite)
 		}
-		if c.ExportDir != "" {
-			path = exports.unique(path, c.ExportDir)
+		if c.Save != "" {
+			path = exports.unique(path, c.Save)
 			save(path, cmmt, c.Overwrite)
 		}
 		return err
@@ -226,7 +228,7 @@ func (c Config) Status() string {
 	if c.cmmts != 1 {
 		cm += "s"
 	}
-	if c.NoDupes {
+	if !c.Dupes {
 		unq = "unique "
 	}
 	s := ""
@@ -236,7 +238,9 @@ func (c Config) Status() string {
 	return s + color.Secondary.Sprint("Scanned ") +
 		color.Primary.Sprintf("%d zip %s", c.zips, a) +
 		color.Secondary.Sprint(" and found ") +
-		color.Primary.Sprintf("%d %s%s\n", c.cmmts, unq, cm)
+		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm) +
+		color.Secondary.Sprint(", taking ") +
+		color.Primary.Sprintf("%s", time.Since(c.Timer))
 }
 
 // Save a zip cmmt to the file path.
@@ -292,7 +296,7 @@ func valid(name string) bool {
 // unique checks the destination path against an export map.
 // The map contains a unique collection of previously used destination
 // paths, to avoid creating duplicate text filenames while using the
-// ExportDir config.
+// Save config.
 func (exports export) unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename

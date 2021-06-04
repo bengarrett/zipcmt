@@ -12,9 +12,9 @@ import (
 
 func TestConfig_Clean(t *testing.T) {
 	type fields struct {
-		ExportDir  string
+		Save       string
 		ExportFile bool
-		NoDupes    bool
+		Dupes      bool
 		Overwrite  bool
 		Raw        bool
 		Print      bool
@@ -28,17 +28,17 @@ func TestConfig_Clean(t *testing.T) {
 		wantErr bool
 	}{
 		{"empty", fields{}, false},
-		{"missing", fields{ExportDir: "/no/such/directory"}, true},
-		{"file", fields{ExportDir: "../test/test.txt"}, true},
-		{"dir", fields{ExportDir: "../test"}, false},
-		{"home", fields{ExportDir: "~"}, false},
+		{"missing", fields{Save: "/no/such/directory"}, true},
+		{"file", fields{Save: "../test/test.txt"}, true},
+		{"dir", fields{Save: "../test"}, false},
+		{"home", fields{Save: "~"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
@@ -55,9 +55,9 @@ func TestConfig_Clean(t *testing.T) {
 
 func TestConfig_Read(t *testing.T) {
 	type fields struct {
-		ExportDir  string
+		Save       string
 		ExportFile bool
-		NoDupes    bool
+		Dupes      bool
 		Overwrite  bool
 		Raw        bool
 		Print      bool
@@ -80,9 +80,9 @@ func TestConfig_Read(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
@@ -104,9 +104,9 @@ func TestConfig_Read(t *testing.T) {
 
 func TestConfig_Scans(t *testing.T) {
 	type fields struct {
-		ExportDir  string
+		Save       string
 		ExportFile bool
-		NoDupes    bool
+		Dupes      bool
 		Overwrite  bool
 		Raw        bool
 		Print      bool
@@ -127,15 +127,15 @@ func TestConfig_Scans(t *testing.T) {
 	}{
 		{"no root", fields{}, "", true},
 		{"bad root", fields{}, "../test/missing", true},
-		{"test dir", fields{NoDupes: true}, "../test", false},
-		{"exportdir", fields{NoDupes: true, ExportDir: tmp}, "../test", false},
+		{"test dir", fields{Dupes: true}, "../test", false},
+		{"exportdir", fields{Dupes: true, Save: tmp}, "../test", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
@@ -151,9 +151,9 @@ func TestConfig_Scans(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
@@ -170,9 +170,9 @@ func TestConfig_Scans(t *testing.T) {
 
 func TestConfig_separator(t *testing.T) {
 	type fields struct {
-		ExportDir  string
+		Save       string
 		ExportFile bool
-		NoDupes    bool
+		Dupes      bool
 		Overwrite  bool
 		Raw        bool
 		Print      bool
@@ -193,9 +193,9 @@ func TestConfig_separator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
@@ -213,9 +213,9 @@ func TestConfig_separator(t *testing.T) {
 func TestConfig_Status(t *testing.T) {
 	color.Enable = false
 	type fields struct {
-		ExportDir  string
+		Save       string
 		ExportFile bool
-		NoDupes    bool
+		Dupes      bool
 		Overwrite  bool
 		Raw        bool
 		Print      bool
@@ -235,9 +235,9 @@ func TestConfig_Status(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				ExportDir:  tt.fields.ExportDir,
+				Save:       tt.fields.Save,
 				ExportFile: tt.fields.ExportFile,
-				NoDupes:    tt.fields.NoDupes,
+				Dupes:      tt.fields.Dupes,
 				Overwrite:  tt.fields.Overwrite,
 				Raw:        tt.fields.Raw,
 				Print:      tt.fields.Print,
