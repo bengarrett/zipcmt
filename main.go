@@ -4,6 +4,7 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"os"
@@ -16,6 +17,9 @@ import (
 )
 
 var (
+	//go:embed embed/logo.txt
+	logo string
+
 	version = "0.0.0"
 	commit  = "unset" // nolint: gochecknoglobals
 	date    = "unset" // nolint: gochecknoglobals
@@ -190,7 +194,8 @@ func help() {
 // Info prints out the program information and version.
 func info() {
 	const copyright = "\u00A9"
-	fmt.Printf("zipcmt v%s\n%s 2021 Ben Garrett\n", version, copyright)
+	fmt.Println(logo)
+	fmt.Printf("zipcmt v%s\n%s 2021 Ben Garrett, logo by sensenstahl\n", version, copyright)
 	fmt.Printf("https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Printf("build: %s (%s)\n", commit, date)
 	exe, err := self()
