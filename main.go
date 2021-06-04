@@ -29,22 +29,22 @@ var (
 const winOS = "windows"
 
 func main() {
+	const ellipsis = "\u2026"
 	var c zipcmt.Config
 	var noprint, norecursive bool
 	c.Timer = time.Now()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal")
-	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding instead of Unicode")
-	flag.BoolVar(&c.ExportFile, "export", false, fmt.Sprintf("save the comments to textfiles stored alongside the archive (%s)",
+	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
+	flag.BoolVar(&c.ExportFile, "export", false, fmt.Sprintf("save the comments as textfiles stored alongside the zip files (%s)",
 		color.Danger.Sprint("use at your own risk")))
 	flag.StringVar(&c.Save, "save", "", "save the comments to uniquely named textfiles in this directory")
 	flag.BoolVar(&norecursive, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
-	flag.BoolVar(&c.Dupes, "dupes", false, "show duplicate comments from different zips")
+	flag.BoolVar(&c.Dupes, "all", false, "show all comments, including duplicates in multiple zips")
 	ver := flag.Bool("version", false, "version and information for this program")
 	s := flag.String("s", "", "alias for save")
-	e := flag.Bool("e", false, "alias for export")
-	d := flag.Bool("d", false, "alias for dupes")
+	a := flag.Bool("a", false, "alias for all")
 	o := flag.Bool("o", false, "alias for overwrite")
 	q := flag.Bool("q", false, "alias for quiet")
 	r := flag.Bool("r", false, "alias for norecursive")
@@ -64,9 +64,6 @@ func main() {
 	} else {
 		c.Print = true
 	}
-	if *e {
-		c.ExportFile = true
-	}
 	if *s != "" {
 		c.Save = *s
 	}
@@ -76,7 +73,7 @@ func main() {
 	if *q {
 		c.Quiet = true
 	}
-	if *d {
+	if *a {
 		c.Dupes = true
 	}
 	// sanitize the export directory
@@ -107,7 +104,7 @@ func flags(ver, v *bool) {
 	for _, arg := range flag.Args() {
 		switch strings.ToLower(arg) {
 		case "-h", "-help", "--help":
-			help(false)
+			help(true)
 			os.Exit(0)
 		case "-v", "-version", "--version":
 			info()
@@ -147,43 +144,45 @@ func help(logo bool) {
 	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Examples:")
-	fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt .\t\t\t\t"))
-	fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique zipfile comments"))
+	fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt .\t\t\t"))
+	fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
 	if runtime.GOOS == winOS {
 		if hd, err := os.UserHomeDir(); err == nil {
 			fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -save=C:\\text %s%sDownloads\t\t", hd, ps))
-			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# recursively scan the download directory and save found comments to the C:\\text directory"))
+			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t# scan the files and directories in Downloads and save the unique comments to 'C:\\text'"))
 		}
-		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -s=C:\\text C:\t\t"))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the C: drive and save any found comments to the C:\\text directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -q C: D: | more\t"))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the C: plus the D: drive and view unique comments in a page reader"))
+		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -save=C:\\text C:\t"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the 'C' drive and save the unique comments to the 'C:\\text' directory"))
+		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -quiet C: D: | more\t"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the 'C' and 'D' drives to view the unique comments in a page reader"))
 	} else {
 		fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -save=~%stext ~%sDownloads\t\t", ps, ps))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# recursively scan the download directory and save found comments to a directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -s=~%stext ~%sDownloads\t", ps, ps))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# recursively scan the download directory and save all comments to a directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -r -n -q %s | less\t\t", ps))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the whole system and view unique comments in a page reader"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# scan the user download directories and save unique comments to a directory"))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -d -s=~%stext ~%sDownloads\t", ps, ps))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the user download directories and save all comments to a directory"))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -n -quiet %s | less\t\t", ps))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the whole system to view the unique comments in a page reader"))
 	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Options:")
 	w := tabwriter.NewWriter(os.Stderr, 0, 0, 4, ' ', 0)
-	f = flag.Lookup("norecursive")
-	fmt.Fprintf(w, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
-	f = flag.Lookup("dupes")
-	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("noprint")
-	fmt.Fprintf(w, "    -p, -%v\t%v\n", f.Name, f.Usage)
-	fmt.Fprintln(w, "                \t")
 	f = flag.Lookup("save")
 	fmt.Fprintf(w, "    -%v, -%v=DIRECTORY\t%v\n", "s", f.Name, f.Usage)
 	f = flag.Lookup("overwrite")
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("export")
-	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	f = flag.Lookup("noprint")
+	fmt.Fprintf(w, "    -p, -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
+
+	f = flag.Lookup("norecursive")
+	fmt.Fprintf(w, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
+	f = flag.Lookup("all")
+	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	f = flag.Lookup("raw")
+	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
+	fmt.Fprintln(w, "                \t")
+
+	f = flag.Lookup("export")
 	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
 	f = flag.Lookup("quiet")
@@ -192,6 +191,10 @@ func help(logo bool) {
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	fmt.Fprintln(w, "    -h, -help\tshow this list of options")
 	fmt.Fprintln(w)
+	if runtime.GOOS == winOS {
+		fmt.Fprintln(w, "For optimal performance Windows users may wish to temporarily disable the Virus & threat 'Real-time protection' under Windows Security.")
+		fmt.Fprintln(w, "Or create a Microsoft Defender Antivirus Exclusion for the directories to be scanned.")
+	}
 	w.Flush()
 }
 
