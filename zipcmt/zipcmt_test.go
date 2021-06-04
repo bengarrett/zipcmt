@@ -12,15 +12,15 @@ import (
 
 func TestConfig_Clean(t *testing.T) {
 	type fields struct {
-		Save       string
-		ExportFile bool
-		Dupes      bool
-		Overwrite  bool
-		Raw        bool
-		Print      bool
-		Quiet      bool
-		zips       int
-		cmmts      int
+		Save      string
+		Export    bool
+		Dupes     bool
+		Overwrite bool
+		Raw       bool
+		Print     bool
+		Quiet     bool
+		zips      int
+		cmmts     int
 	}
 	tests := []struct {
 		name    string
@@ -36,15 +36,15 @@ func TestConfig_Clean(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			if err := c.Clean(); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Clean() error = %v, wantErr %v", err, tt.wantErr)
@@ -55,15 +55,15 @@ func TestConfig_Clean(t *testing.T) {
 
 func TestConfig_Read(t *testing.T) {
 	type fields struct {
-		Save       string
-		ExportFile bool
-		Dupes      bool
-		Overwrite  bool
-		Raw        bool
-		Print      bool
-		Quiet      bool
-		zips       int
-		cmmts      int
+		Save      string
+		Export    bool
+		Dupes     bool
+		Overwrite bool
+		Raw       bool
+		Print     bool
+		Quiet     bool
+		zips      int
+		cmmts     int
 	}
 	tests := []struct {
 		name     string
@@ -80,15 +80,15 @@ func TestConfig_Read(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			gotCmmt, err := c.Read(tt.fname)
 			if (err != nil) != tt.wantErr {
@@ -104,15 +104,15 @@ func TestConfig_Read(t *testing.T) {
 
 func TestConfig_Scans(t *testing.T) {
 	type fields struct {
-		Save       string
-		ExportFile bool
-		Dupes      bool
-		Overwrite  bool
-		Raw        bool
-		Print      bool
-		Quiet      bool
-		zips       int
-		cmmts      int
+		Save      string
+		Export    bool
+		Dupes     bool
+		Overwrite bool
+		Raw       bool
+		Print     bool
+		Quiet     bool
+		zips      int
+		cmmts     int
 	}
 	tmp, err := os.MkdirTemp(os.TempDir(), "zipcmtscanstest")
 	if err != nil {
@@ -133,15 +133,15 @@ func TestConfig_Scans(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			if err := c.Scan(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scan() error = %v, wantErr %v", err, tt.wantErr)
@@ -151,15 +151,15 @@ func TestConfig_Scans(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			if err := c.Walk(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
@@ -170,15 +170,15 @@ func TestConfig_Scans(t *testing.T) {
 
 func TestConfig_separator(t *testing.T) {
 	type fields struct {
-		Save       string
-		ExportFile bool
-		Dupes      bool
-		Overwrite  bool
-		Raw        bool
-		Print      bool
-		Quiet      bool
-		zips       int
-		cmmts      int
+		Save      string
+		Export    bool
+		Dupes     bool
+		Overwrite bool
+		Raw       bool
+		Print     bool
+		Quiet     bool
+		zips      int
+		cmmts     int
 	}
 	tests := []struct {
 		name   string
@@ -193,15 +193,15 @@ func TestConfig_separator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			if got := strings.TrimSpace(c.separator(tt.fname)); got != tt.want {
 				t.Errorf("Config.separator() = %v, want %v", got, tt.want)
@@ -213,15 +213,15 @@ func TestConfig_separator(t *testing.T) {
 func TestConfig_Status(t *testing.T) {
 	color.Enable = false
 	type fields struct {
-		Save       string
-		ExportFile bool
-		Dupes      bool
-		Overwrite  bool
-		Raw        bool
-		Print      bool
-		Quiet      bool
-		zips       int
-		cmmts      int
+		Save      string
+		Export    bool
+		Dupes     bool
+		Overwrite bool
+		Raw       bool
+		Print     bool
+		Quiet     bool
+		zips      int
+		cmmts     int
 	}
 	tests := []struct {
 		name   string
@@ -235,15 +235,15 @@ func TestConfig_Status(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				Save:       tt.fields.Save,
-				ExportFile: tt.fields.ExportFile,
-				Dupes:      tt.fields.Dupes,
-				Overwrite:  tt.fields.Overwrite,
-				Raw:        tt.fields.Raw,
-				Print:      tt.fields.Print,
-				Quiet:      tt.fields.Quiet,
-				zips:       tt.fields.zips,
-				cmmts:      tt.fields.cmmts,
+				Save:      tt.fields.Save,
+				Export:    tt.fields.Export,
+				Dupes:     tt.fields.Dupes,
+				Overwrite: tt.fields.Overwrite,
+				Raw:       tt.fields.Raw,
+				Print:     tt.fields.Print,
+				Quiet:     tt.fields.Quiet,
+				zips:      tt.fields.zips,
+				cmmts:     tt.fields.cmmts,
 			}
 			if got := strings.TrimSpace(c.Status()); got != tt.want {
 				t.Errorf("Config.Status() = \ngot:  %v,\nwant: %v", got, tt.want)

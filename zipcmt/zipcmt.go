@@ -20,16 +20,16 @@ import (
 )
 
 type Config struct {
-	Timer      time.Time
-	Save       string
-	ExportFile bool
-	Dupes      bool
-	Overwrite  bool
-	Raw        bool
-	Print      bool
-	Quiet      bool
-	zips       int
-	cmmts      int
+	Timer     time.Time
+	Save      string
+	Export    bool
+	Dupes     bool
+	Overwrite bool
+	Raw       bool
+	Print     bool
+	Quiet     bool
+	zips      int
+	cmmts     int
 }
 
 type (
@@ -140,7 +140,7 @@ func (c *Config) Scan(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
-		if c.ExportFile {
+		if c.Export {
 			save(exportName(path), cmmt, c.Overwrite)
 		}
 		if c.Save != "" {
@@ -185,7 +185,7 @@ func (c *Config) Walk(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
-		if c.ExportFile {
+		if c.Export {
 			save(exportName(path), cmmt, c.Overwrite)
 		}
 		if c.Save != "" {
@@ -273,7 +273,7 @@ func save(name, cmmt string, ow bool) bool {
 	return true
 }
 
-// exportName returns a textfile filepath for the ExportFile config.
+// exportName returns a textfile filepath for the Export config.
 func exportName(path string) string {
 	if path == "" {
 		return ""
