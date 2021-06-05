@@ -34,6 +34,7 @@ func main() {
 	var noprint, norecursive bool
 	c.Timer = time.Now()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal to improve the performance of the scan")
+	flag.BoolVar(&c.Now, "now", false, "do not use the last modification date sourced from the zip files")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
 	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as textfiles stored alongside the zip files (%s)",
 		color.Danger.Sprint("use at your own risk")))
@@ -178,6 +179,8 @@ func help(logo bool) {
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
 	f = flag.Lookup("all")
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	f = flag.Lookup("now")
+	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
 	f = flag.Lookup("raw")
 	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")

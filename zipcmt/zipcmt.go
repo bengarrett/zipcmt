@@ -25,6 +25,7 @@ type Config struct {
 	Dupes     bool
 	Export    bool
 	Overwrite bool
+	Now       bool
 	Raw       bool
 	Print     bool
 	Quiet     bool
@@ -140,14 +141,7 @@ func (c *Config) Scan(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
-
-		mod := time.Date(0, 0, 0, 0, 0, 0, 0, time.Local)
-		if i, err := file.Info(); err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-		} else {
-			mod = i.ModTime()
-		}
-
+		mod := c.lastMod(file)
 		if c.Export {
 			save(exportName(path), cmmt, mod, c.Overwrite)
 		}
@@ -193,14 +187,7 @@ func (c *Config) Walk(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
-
-		mod := time.Date(0, 0, 0, 0, 0, 0, 0, time.Local)
-		if i, err := d.Info(); err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-		} else {
-			mod = i.ModTime()
-		}
-
+		mod := c.lastMod(d)
 		if c.Export {
 			save(exportName(path), cmmt, mod, c.Overwrite)
 		}
@@ -211,6 +198,20 @@ func (c *Config) Walk(root string) error {
 		return err
 	})
 	return err
+}
+
+// lastMod preserves the zip files last modification date.
+func (c *Config) lastMod(file fs.DirEntry) time.Time {
+	zero := time.Date(0001, 1, 1, 00, 00, 00, 00, time.UTC)
+	if c.Now {
+		return zero
+	}
+	i, err := file.Info()
+	if err != nil {
+		color.Error.Tips(fmt.Sprint(err))
+		return zero
+	}
+	return i.ModTime()
 }
 
 // separator prints and stylises the named file.
