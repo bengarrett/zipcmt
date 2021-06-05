@@ -228,9 +228,9 @@ func TestConfig_Status(t *testing.T) {
 		fields fields
 		want   string
 	}{
-		{"none", fields{}, "Scanned 0 zip archives and found 0 comments"},
-		{"one", fields{zips: 1, cmmts: 1}, "Scanned 1 zip archive and found 1 comment"},
-		{"multi", fields{zips: 5, cmmts: 2}, "Scanned 5 zip archives and found 2 comments"},
+		{"none", fields{}, "Scanned 0 zip archives and found 0 unique comments"},
+		{"one", fields{zips: 1, cmmts: 1}, "Scanned 1 zip archive and found 1 unique comment"},
+		{"multi", fields{zips: 5, cmmts: 2}, "Scanned 5 zip archives and found 2 unique comments"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -242,6 +242,7 @@ func TestConfig_Status(t *testing.T) {
 				Raw:       tt.fields.Raw,
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
+				test:      true,
 				zips:      tt.fields.zips,
 				cmmts:     tt.fields.cmmts,
 			}

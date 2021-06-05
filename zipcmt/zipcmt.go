@@ -29,6 +29,7 @@ type Config struct {
 	Raw       bool
 	Print     bool
 	Quiet     bool
+	test      bool
 	zips      int
 	cmmts     int
 }
@@ -252,12 +253,15 @@ func (c Config) Status() string {
 	if c.Print {
 		s = "\n"
 	}
-	return s + color.Secondary.Sprint("Scanned ") +
+	s += color.Secondary.Sprint("Scanned ") +
 		color.Primary.Sprintf("%d zip %s", c.zips, a) +
 		color.Secondary.Sprint(" and found ") +
-		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm) +
-		color.Secondary.Sprint(", taking ") +
-		color.Primary.Sprintf("%s", time.Since(c.Timer))
+		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
+	if !c.test {
+		s += color.Secondary.Sprint(", taking ") +
+			color.Primary.Sprintf("%s", time.Since(c.Timer))
+	}
+	return s
 }
 
 // Save a zip cmmt to the file path.
