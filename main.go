@@ -145,9 +145,9 @@ func help(logo bool) {
 	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Examples:")
-	fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt .\t\t\t"))
-	fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
 	if runtime.GOOS == winOS {
+		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt .\t\t\t"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
 		if hd, err := os.UserHomeDir(); err == nil {
 			fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -save=C:\\text %s%sDownloads\t\t", hd, ps))
 			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t# scan the files and directories in Downloads and save the unique comments to 'C:\\text'"))
@@ -157,11 +157,13 @@ func help(logo bool) {
 		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -quiet C: D: | more\t"))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the 'C' and 'D' drives to view the unique comments in a page reader"))
 	} else {
-		fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -save=~%stext ~%sDownloads\t\t", ps, ps))
-		fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t\t# scan the user download directories and save unique comments to a directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -d -s=~%stext ~%sDownloads\t", ps, ps))
+		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt .\t\t\t\t"))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -save=~%stext ~%sDownloads\t", ps, ps))
+		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the user download directories and save unique comments to a directory"))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -a -s=~%stext ~%sDownloads\t", ps, ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the user download directories and save all comments to a directory"))
-		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -n -quiet %s | less\t\t", ps))
+		fmt.Fprint(os.Stderr, color.Info.Sprintf("    zipcmt -quiet %s | less\t\t", ps))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the whole system to view the unique comments in a page reader"))
 	}
 	fmt.Fprintln(os.Stderr, "")
