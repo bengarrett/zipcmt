@@ -1,6 +1,6 @@
 # zipcmt
 
-[![goreleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml) &nbsp;
+[![GoReleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml) &
 [![Go Reference](https://pkg.go.dev/badge/github.com/bengarrett/zipcmt.svg)](https://pkg.go.dev/github.com/bengarrett/zipcmt)
 
 Zipcmt is the super-fast, batch, zip file comment viewer, and extractor.
@@ -37,7 +37,7 @@ wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.deb
 dpkg -i zipcmt.deb
 ```
 
-[RPM (Redhat package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm)
+[RPM (Red Hat package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm)
 ```sh
 wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm
 rpm -i zipcmt.rpm

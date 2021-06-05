@@ -262,7 +262,7 @@ func (c Config) Status() string {
 }
 
 // Save a zip cmmt to the file path.
-// Unless the overwrite argument is set, any previous cmmt textfiles are skipped.
+// Unless the overwrite argument is set, any previous cmmt text files are skipped.
 func save(name, cmmt string, mod time.Time, ow bool) bool {
 	if cmmt == "" {
 		return false
@@ -294,7 +294,7 @@ func save(name, cmmt string, mod time.Time, ow bool) bool {
 	return true
 }
 
-// exportName returns a textfile filepath for the Export config.
+// exportName returns a text file file path for the Export config.
 func exportName(path string) string {
 	if path == "" {
 		return ""

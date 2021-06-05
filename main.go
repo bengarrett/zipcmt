@@ -35,11 +35,11 @@ func main() {
 	c.Timer = time.Now()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal to improve the performance of the scan")
 	flag.BoolVar(&norecursive, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
-	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as textfiles stored alongside the zip files (%s)",
+	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as text files stored alongside the zip files (%s)",
 		color.Danger.Sprint("use at your own risk")))
 	flag.BoolVar(&c.Dupes, "all", false, "show all comments, including duplicates in multiple zips")
 	flag.BoolVar(&c.Now, "now", false, "do not use the last modification date sourced from the zip files")
-	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
+	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment text files")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
 	flag.StringVar(&c.Save, "save", "", "save the comments to uniquely named textfiles in this directory")
@@ -101,7 +101,7 @@ func main() {
 }
 
 func flags(ver, v *bool) {
-	// convience for when a help or version flag is passed as an argument
+	// convenience for when a help or version flag is passed as an argument
 	for _, arg := range flag.Args() {
 		switch strings.ToLower(arg) {
 		case "-h", "-help", "--help":
