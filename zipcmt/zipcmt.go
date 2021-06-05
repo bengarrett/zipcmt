@@ -249,10 +249,7 @@ func (c Config) Status() string {
 	if !c.Dupes {
 		unq = "unique "
 	}
-	s := ""
-	if c.Print {
-		s = "\n"
-	}
+	s := "\n"
 	s += color.Secondary.Sprint("Scanned ") +
 		color.Primary.Sprintf("%d zip %s", c.zips, a) +
 		color.Secondary.Sprint(" and found ") +

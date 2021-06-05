@@ -61,7 +61,9 @@ func ExampleConfig_Walk() {
 }
 
 func ExampleConfig_Status() {
-	c := Config{}
+	c := Config{
+		test: true,
+	}
 	if err := c.Walk("../test"); err != nil {
 		log.Panicln(err)
 	}
@@ -69,11 +71,13 @@ func ExampleConfig_Status() {
 
 	c = Config{
 		Dupes: true,
+		test:  true,
 	}
 	if err := c.Walk("../test"); err != nil {
 		log.Panicln(err)
 	}
 	fmt.Print(c.Status())
-	// Output: Scanned 4 zip archives and found 2 comments
+	// Output:
 	// Scanned 4 zip archives and found 1 unique comment
+	// Scanned 4 zip archives and found 2 comments
 }
