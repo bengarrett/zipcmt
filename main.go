@@ -19,7 +19,7 @@ import (
 
 var (
 	//go:embed embed/logo.txt
-	brand string
+	brand string // nolint: gochecknoglobals
 
 	version = "0.0.0"
 	commit  = "unset" // nolint: gochecknoglobals
@@ -34,21 +34,21 @@ func main() {
 	var noprint, norecursive bool
 	c.Timer = time.Now()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal to improve the performance of the scan")
-	flag.BoolVar(&c.Now, "now", false, "do not use the last modification date sourced from the zip files")
-	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
+	flag.BoolVar(&norecursive, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as textfiles stored alongside the zip files (%s)",
 		color.Danger.Sprint("use at your own risk")))
-	flag.StringVar(&c.Save, "save", "", "save the comments to uniquely named textfiles in this directory")
-	flag.BoolVar(&norecursive, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
+	flag.BoolVar(&c.Dupes, "all", false, "show all comments, including duplicates in multiple zips")
+	flag.BoolVar(&c.Now, "now", false, "do not use the last modification date sourced from the zip files")
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment textfiles")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
-	flag.BoolVar(&c.Dupes, "all", false, "show all comments, including duplicates in multiple zips")
+	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
+	flag.StringVar(&c.Save, "save", "", "save the comments to uniquely named textfiles in this directory")
 	ver := flag.Bool("version", false, "version and information for this program")
-	s := flag.String("s", "", "alias for save")
 	a := flag.Bool("a", false, "alias for all")
 	o := flag.Bool("o", false, "alias for overwrite")
 	q := flag.Bool("q", false, "alias for quiet")
 	r := flag.Bool("r", false, "alias for norecursive")
+	s := flag.String("s", "", "alias for save")
 	u := flag.Bool("p", false, "alias for noprint")
 	v := flag.Bool("v", false, "alias for version")
 	flag.Usage = func() {
@@ -150,7 +150,8 @@ func help(logo bool) {
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
 		if hd, err := os.UserHomeDir(); err == nil {
 			fmt.Fprintln(os.Stderr, color.Info.Sprintf("    zipcmt -save=C:\\text %s%sDownloads\t\t", hd, ps))
-			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t# scan the files and directories in Downloads and save the unique comments to 'C:\\text'"))
+			fmt.Fprintln(os.Stderr, color.Note.Sprint("\t\t\t\t# scan the files and directories in Downloads"+
+				" and save the unique comments to 'C:\\text'"))
 		}
 		fmt.Fprint(os.Stderr, color.Info.Sprint("    zipcmt -save=C:\\text C:\t"))
 		fmt.Fprintln(os.Stderr, color.Note.Sprint("# scan the 'C' drive and save the unique comments to the 'C:\\text' directory"))
@@ -176,7 +177,6 @@ func help(logo bool) {
 	f = flag.Lookup("noprint")
 	fmt.Fprintf(w, "    -p, -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
-
 	f = flag.Lookup("norecursive")
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
 	f = flag.Lookup("all")
@@ -186,7 +186,6 @@ func help(logo bool) {
 	f = flag.Lookup("raw")
 	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
-
 	f = flag.Lookup("export")
 	fmt.Fprintf(w, "        -%v\t%v\n", f.Name, f.Usage)
 	fmt.Fprintln(w, "                \t")
@@ -196,11 +195,16 @@ func help(logo bool) {
 	fmt.Fprintf(w, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	fmt.Fprintln(w, "    -h, -help\tshow this list of options")
 	fmt.Fprintln(w)
+	optimial(w)
+	w.Flush()
+}
+
+func optimial(w *tabwriter.Writer) {
 	if runtime.GOOS == winOS {
-		fmt.Fprintln(w, "For optimal performance Windows users may wish to temporarily disable the Virus & threat 'Real-time protection' under Windows Security.")
+		fmt.Fprintln(w, "For optimal performance Windows users may wish to temporarily disable"+
+			" the Virus & threat 'Real-time protection' under Windows Security.")
 		fmt.Fprintln(w, "Or create a Microsoft Defender Antivirus Exclusion for the directories to be scanned.")
 	}
-	w.Flush()
 }
 
 // Info prints out the program information and version.
