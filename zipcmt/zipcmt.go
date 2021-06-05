@@ -22,8 +22,8 @@ import (
 type Config struct {
 	Timer     time.Time
 	Save      string
-	Export    bool
 	Dupes     bool
+	Export    bool
 	Overwrite bool
 	Raw       bool
 	Print     bool
@@ -140,12 +140,20 @@ func (c *Config) Scan(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
+
+		mod := time.Date(0, 0, 0, 0, 0, 0, 0, time.Local)
+		if i, err := file.Info(); err != nil {
+			color.Error.Tips(fmt.Sprint(err))
+		} else {
+			mod = i.ModTime()
+		}
+
 		if c.Export {
-			save(exportName(path), cmmt, c.Overwrite)
+			save(exportName(path), cmmt, mod, c.Overwrite)
 		}
 		if c.Save != "" {
 			path = exports.unique(path, c.Save)
-			save(path, cmmt, c.Overwrite)
+			save(path, cmmt, mod, c.Overwrite)
 		}
 	}
 	return nil
@@ -185,12 +193,20 @@ func (c *Config) Walk(root string) error {
 		if c.Print {
 			stdout(cmmt)
 		}
+
+		mod := time.Date(0, 0, 0, 0, 0, 0, 0, time.Local)
+		if i, err := d.Info(); err != nil {
+			color.Error.Tips(fmt.Sprint(err))
+		} else {
+			mod = i.ModTime()
+		}
+
 		if c.Export {
-			save(exportName(path), cmmt, c.Overwrite)
+			save(exportName(path), cmmt, mod, c.Overwrite)
 		}
 		if c.Save != "" {
 			path = exports.unique(path, c.Save)
-			save(path, cmmt, c.Overwrite)
+			save(path, cmmt, mod, c.Overwrite)
 		}
 		return err
 	})
@@ -245,7 +261,7 @@ func (c Config) Status() string {
 
 // Save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt textfiles are skipped.
-func save(name, cmmt string, ow bool) bool {
+func save(name, cmmt string, mod time.Time, ow bool) bool {
 	if cmmt == "" {
 		return false
 	}
@@ -260,6 +276,9 @@ func save(name, cmmt string, ow bool) bool {
 		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
 	}
 	defer f.Close()
+	if !mod.IsZero() {
+		defer os.Chtimes(name, time.Now(), mod)
+	}
 	if cmmt[len(cmmt)-1:] != "\n" {
 		cmmt += "\n"
 	}
