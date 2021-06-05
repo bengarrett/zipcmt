@@ -87,7 +87,7 @@ func main() {
 			if err := c.Walk(root); err != nil {
 				color.Error.Tips(fmt.Sprint(err))
 			}
-			fmt.Print(c.Status())
+			fmt.Println(c.Status())
 		}
 		return
 	}
@@ -97,7 +97,7 @@ func main() {
 			color.Error.Tips(fmt.Sprint(err))
 		}
 	}
-	fmt.Print(c.Status())
+	fmt.Println(c.Status())
 }
 
 func flags(ver, v *bool) {
@@ -203,7 +203,8 @@ func optimial(w *tabwriter.Writer) {
 	if runtime.GOOS == winOS {
 		fmt.Fprintln(w, "For optimal performance Windows users may wish to temporarily disable"+
 			" the Virus & threat 'Real-time protection' under Windows Security.")
-		fmt.Fprintln(w, "Or create a Microsoft Defender Antivirus Exclusion for the directories to be scanned.")
+		fmt.Fprintln(w, "Or create Windows Security Exclusions for the directories to be scanned.")
+		fmt.Fprintln(w, "https://support.microsoft.com/en-us/windows/add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26")
 	}
 }
 

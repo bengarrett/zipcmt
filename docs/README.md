@@ -2,13 +2,13 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/bengarrett/zipcmt.svg)](https://pkg.go.dev/github.com/bengarrett/zipcmt) [![GoReleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml)
 
-Zipcmt is the super-fast, batch, zip file comment viewer, and extractor.
+Zipcmt is the super-fast batch, zip file comment viewer, and extractor.
 
 - Using a modern PC with the zip files stored on a solid-state drive, zipcmt handles many thousands of archives per second.
 - Comments convert to Unicode text for easy viewing, editing, or web hosting.<br>
 <small>* comments can also be left as-is in their original CP437 or ISO-8859 text encoding.</small>
 - Rarely see duplicate comments to avoid those annoying lists of identical site adverts.
-- Transfers the source zip file last modification date over to any saved comments.
+- Transfer the source zip file's last modification date over to any saved comments.
 - Tailored to both Windows and POSIX terminal platforms.
 
 ## Downloads
@@ -50,12 +50,32 @@ scoop bucket add bengarrett https://github.com/bengarrett/zipcmt.git
 scoop install bengarrett/zipcmt
 ```
 
+## Windows Performance
+
+It is highly encouraged that Windows users temporarily disable **Virus & threat protection, Real-time protection**, or [create **Windows Security Exclusion**s](https://support.microsoft.com/en-us/windows/add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26) for the folders to be scanned before running `zipcmt`. Otherwise, the hit to performance is amazingly stark!
+
+```
+zipcmt -noprint 'C:\zipcmt examples\'
+```
+
+#### This is the expected performance on an SSD with a Windows Security Exclusion in place.
+
+> Scanned 11331 zip archives and found 412 unique comments, taking 1.593534s
+
+**1.6 seconds** to scan 11,000 zip archives.
+
+#### This is the time taken with the default Microsoft Defender settings in use.
+
+> Scanned 11331 zip archives and found 412 unique comments, taking 1m38.9398945s
+
+**1 minute and 38 seconds** to scan the same 11,000 zip archives!
+
 ## Usage
 
 ![Usage screenshot on Windows](usage.png)
 
 ## Example usage
-### Print
+#### Scan and print the comments
 ```sh
 zipcmt test/
 
@@ -65,35 +85,35 @@ zipcmt test/
 # Scanned 4 zip archives and found 1 unique comment
 ```
 
-##### Quiet example
+#### Only print the comments
 ```sh
 zipcmt --quiet test/
 
 #   This is an example test comment for zipcmt.
 ```
 
-##### Save to directory examples
+#### Scan and save the comments
 
 Linux, macOS, etc.
 
 ```sh
-zipcmt --save=~ test/
+zipcmt --noprint --save=~ test/
 
-# Scanned 2 zip archives and found 1 comment
+# Scanned 4 zip archives and found 1 unique comment
 
 cat ~/test-with-comment-zipcomment.txt
 
 #   This is an example test comment for zipcmt.
 ```
 
-Windows
+Windows PowerShell
 
 ```powershell
-zipcmt --save="C:\Users\Ben\Documents" test
+zipcmt --noprint --save="C:\Users\Ben\Documents" .\test\
 
-# Scanned 2 zip archives and found 1 comment
+# Scanned 4 zip archives and found 1 unique comment
 
-cat "C:\Users\Ben\Documents\test-with-comment-zipcomment.txt
+cat "C:\Users\Ben\Documents\test-with-comment-zipcomment.txt"
 
 #   This is an example test comment for zipcmt.
 ```
