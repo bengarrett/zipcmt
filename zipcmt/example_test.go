@@ -5,17 +5,12 @@ package zipcmt
 import (
 	"fmt"
 	"log"
+
+	"github.com/gookit/color"
 )
 
-func ExampleConfig_Clean() {
-	c := Config{
-		Save: "..//test///.",
-	}
-	if err := c.Clean(); err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Print(c.Save)
-	// Output: ../test
+func init() {
+	color.Enable = false
 }
 
 func ExampleConfig_Read() {
@@ -43,21 +38,6 @@ func ExampleConfig_Scan() {
 	// Output:
 	//This is an example test comment for zipcmmt.[0m
 	//
-}
-
-func ExampleConfig_Walk() {
-	c := Config{
-		Print: true,
-	}
-	if err := c.Walk("../test"); err != nil {
-		log.Panicln(err)
-	}
-	// Output:
-	// ── ../test/subdir/test-with-comment.zip ─┐
-	//    This is an example test comment for zipcmmt.[0m
-	//
-	//  ── ../test/test-with-comment.zip ────────┐
-	//    This is an example test comment for zipcmmt.[0m
 }
 
 func ExampleConfig_Status() {
