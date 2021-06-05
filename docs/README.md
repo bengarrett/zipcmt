@@ -11,7 +11,7 @@ Zipcmt is the super-fast batch, zip file comment viewer, and extractor.
 - Transfer the source zip file's last modification date over to any saved comments.
 - Tailored to both Windows and POSIX terminal platforms.
 
-![Running preview on macOS](preview.mp4)
+![Running preview on macOS](https://user-images.githubusercontent.com/513842/120908127-a7fc4580-c6aa-11eb-8a71-b3734fa53185.mp4)
 
 ## Downloads
 
