@@ -13,7 +13,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/bengarrett/zipcmt/zipcmt"
+	zipcmt "github.com/bengarrett/zipcmt/lib"
 	"github.com/gookit/color"
 )
 
