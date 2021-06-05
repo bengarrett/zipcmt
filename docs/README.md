@@ -1,14 +1,15 @@
 # zipcmt
 
-[![GoReleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml) &
-[![Go Reference](https://pkg.go.dev/badge/github.com/bengarrett/zipcmt.svg)](https://pkg.go.dev/github.com/bengarrett/zipcmt)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bengarrett/zipcmt.svg)](https://pkg.go.dev/github.com/bengarrett/zipcmt) [![GoReleaser](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml/badge.svg)](https://github.com/bengarrett/zipcmt/actions/workflows/release.yml)
 
 Zipcmt is the super-fast, batch, zip file comment viewer, and extractor.
 
 - Using a modern PC with the zip files stored on a solid-state drive, zipcmt handles many thousands of archives per second.
 - Comments convert to Unicode text for easy viewing, editing, or web hosting.<br>
-<small>* comments can also be left as-is in their original legacy text encoding.</small>
-- Never see duplicate comments to avoid those annoying lists of identical site adverts.
+<small>* comments can also be left as-is in their original CP437 or ISO-8859 text encoding.</small>
+- Rarely see duplicate comments to avoid those annoying lists of identical site adverts.
+- Transfers the source zip file last modification date over to any saved comments.
+- Tailored to both Windows and POSIX terminal platforms.
 
 ## Downloads
 
@@ -43,7 +44,7 @@ wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm
 rpm -i zipcmt.rpm
 ```
 
-##### Windows [Scoop](https://scoop.sh/)
+Windows [Scoop](https://scoop.sh/)
 ```sh
 scoop bucket add bengarrett https://github.com/bengarrett/zipcmt.git
 scoop install bengarrett/zipcmt
@@ -51,80 +52,49 @@ scoop install bengarrett/zipcmt
 
 ## Usage
 
+![Usage screenshot on Windows](usage.png)
+
+## Example usage
+### Print
 ```sh
-zipcmt -help
-
-Usage:
-    zipcmt [options] <directories>
-
-Examples:
-    zipcmt -nodupes .       		# scan the current directory and only show unique comments
-    zipcmt -recursive -exportdir=~/text ~/Downloads
-                            		# recursively scan the download directory and save found comments to a directory
-    zipcmt -r -d=~/text ~/Downloads	# recursively scan the download directory and save all comments to a directory
-    zipcmt -n -q -r / | less		# scan the whole system and view unique comments in a page reader
-
-Options:
-    -r, -recursive              recursively walk through all subdirectories while scanning for zip archives
-    -n, -nodupes                no duplicate comments, only show unique finds
-    -p, -noprint                do not print comments to the terminal
-
-    -d, -exportdir=DIRECTORY    save the comment to a textfile stored in this directory
-    -o, -overwrite              any previously exported comment textfiles
-    -e, -export                 save the comment to a textfile stored alongside the archive (use at your own risk)
-
-        -raw                    use the original comment text encoding instead of Unicode
-
-    -q, -quiet                  suppress zipcmt feedback except for errors
-    -v, -version                version and information for this program
-    -h, -help                   show this list of options
-```
-
-##### Print example
-```sh
-ls -l test/
-# test-no-comment.zip  test-with-comment.zip  test.txt
-
 zipcmt test/
 
 #  ── test/test-with-comment.zip ───────────┐
 #    This is an example test comment for zipcmt.
 #
-# Scanned 2 zip archives and found 1 comment
+# Scanned 4 zip archives and found 1 unique comment
 ```
 
 ##### Quiet example
 ```sh
-ls -l test/
-# test-no-comment.zip  test-with-comment.zip  test.txt
-
 zipcmt --quiet test/
+
 #   This is an example test comment for zipcmt.
 ```
-##### No duplicate comments example
+
+##### Save to directory examples
+
+Linux, macOS, etc.
+
 ```sh
-cp test/test-with-comment.zip test/test-with-comment-1.zip
+zipcmt --save=~ test/
 
-ls -l test/
-# test-no-comment.zip  test-with-comment-1.zip test-with-comment.zip  test.txt
-
-zipcmt --nodupes test/
-
-#  ── test/test-with-comment-1.zip ─────────┐
-#    This is an example test comment for zipcmt.
-#
-# Scanned 3 zip archives and found 1 unique comment
-```
-
-##### Save to directory example
-```sh
-ls -l test/
-# test-no-comment.zip  test-with-comment.zip  test.txt
-
-zipcmt --exportdir=~ test/
 # Scanned 2 zip archives and found 1 comment
 
 cat ~/test-with-comment-zipcomment.txt
+
+#   This is an example test comment for zipcmt.
+```
+
+Windows
+
+```powershell
+zipcmt --save="C:\Users\Ben\Documents" test
+
+# Scanned 2 zip archives and found 1 comment
+
+cat "C:\Users\Ben\Documents\test-with-comment-zipcomment.txt
+
 #   This is an example test comment for zipcmt.
 ```
 
