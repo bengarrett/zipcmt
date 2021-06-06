@@ -113,11 +113,11 @@ cat ~/test-with-comment-zipcomment.txt
 Windows PowerShell
 
 ```powershell
-zipcmt.exe --noprint --save="C:\Users\Ben\Documents" .\test\
+zipcmt.exe --noprint --save='C:\Users\Ben\Documents' .\test\
 
 # Scanned 4 zip archives and found 1 unique comment
 
-cat "C:\Users\Ben\Documents\test-with-comment-zipcomment.txt"
+cat 'C:\Users\Ben\Documents\test-with-comment-zipcomment.txt'
 
 #   This is an example test comment for zipcmt.
 ```
