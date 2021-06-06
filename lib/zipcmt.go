@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -321,6 +322,9 @@ func valid(name string) bool {
 func (exports export) unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename
+	if runtime.GOOS == "windows" {
+		name = strings.ToLower(name)
+	}
 	path := filepath.Join(dest, name)
 	if f := exports.find(path); f != path {
 		path = f

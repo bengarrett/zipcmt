@@ -57,20 +57,22 @@ scoop install bengarrett/zipcmt
 It is highly encouraged that Windows users temporarily disable **Virus & threat protection, Real-time protection**, or [create **Windows Security Exclusion**s](https://support.microsoft.com/en-us/windows/add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26) for the folders to be scanned before running `zipcmt`. Otherwise, the hit to performance is amazingly stark!
 
 ```
-zipcmt -noprint 'C:\zipcmt examples\'
+zipcmt -noprint 'C:\examples\'
 ```
 
-#### This is the expected performance on an SSD with a Windows Security Exclusion in place.
-
-> Scanned 11331 zip archives and found 412 unique comments, taking 1.593534s
-
-**1.6 seconds** to scan 11,000 zip archives.
-
-#### This is the time taken with the default Microsoft Defender settings in use.
+This is the time taken with the default Microsoft Defender settings.
 
 > Scanned 11331 zip archives and found 412 unique comments, taking 1m38.9398945s
 
-**1 minute and 38 seconds** to scan the same 11,000 zip archives!
+**1 minute and 38 seconds** to scan 11,000 zip archives.
+
+---
+
+This is the expected performance on an SSD with a Windows Security Exclusion in place.
+
+> Scanned 11331 zip archives and found 412 unique comments, taking 1.593534s
+
+**1.6 seconds** to scan the same 11,000 zip archives!
 
 ## Usage
 
@@ -111,7 +113,7 @@ cat ~/test-with-comment-zipcomment.txt
 Windows PowerShell
 
 ```powershell
-zipcmt --noprint --save="C:\Users\Ben\Documents" .\test\
+zipcmt.exe --noprint --save="C:\Users\Ben\Documents" .\test\
 
 # Scanned 4 zip archives and found 1 unique comment
 
