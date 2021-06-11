@@ -143,24 +143,6 @@ func TestConfig_Scans(t *testing.T) {
 				zips:      tt.fields.zips,
 				cmmts:     tt.fields.cmmts,
 			}
-			if err := c.Scan(tt.root); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Scan() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
-				Save:      tt.fields.Save,
-				Export:    tt.fields.Export,
-				Dupes:     tt.fields.Dupes,
-				Overwrite: tt.fields.Overwrite,
-				Raw:       tt.fields.Raw,
-				Print:     tt.fields.Print,
-				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
-			}
 			if err := c.Walk(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
 			}

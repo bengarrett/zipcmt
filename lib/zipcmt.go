@@ -23,10 +23,13 @@ import (
 type Config struct {
 	Timer     time.Time
 	Save      string
+	logname   string
 	Dupes     bool
 	Export    bool
+	Log       bool
 	Overwrite bool
 	Now       bool
+	NoWalk    bool
 	Raw       bool
 	Print     bool
 	Quiet     bool
@@ -110,51 +113,6 @@ func (c Config) Read(name string) (cmmt string, err error) {
 	return "", nil
 }
 
-// Scan the root directory for zip archives and parse any found comments.
-func (c *Config) Scan(root string) error {
-	exports, hashes := export{}, hash{}
-	files, err := os.ReadDir(root)
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		path := filepath.Join(root, file.Name())
-		if !valid(path) {
-			continue
-		}
-		c.zips++
-		cmmt, err := c.Read(path)
-		if err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-			continue
-		}
-		if cmmt == "" {
-			continue
-		}
-		if !c.Dupes {
-			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
-			if hashes[hash] {
-				continue
-			}
-			hashes[hash] = true
-		}
-		c.cmmts++
-		fmt.Print(c.separator(path))
-		if c.Print {
-			stdout(cmmt)
-		}
-		mod := c.lastMod(file)
-		if c.Export {
-			save(exportName(path), cmmt, mod, c.Overwrite)
-		}
-		if c.Save != "" {
-			path = exports.unique(path, c.Save)
-			save(path, cmmt, mod, c.Overwrite)
-		}
-	}
-	return nil
-}
-
 // Walk the root directory plus all subdirectories for zip archives and parse any found comments.
 func (c *Config) Walk(root string) error {
 	exports, hashes := export{}, hash{}
@@ -165,7 +123,12 @@ func (c *Config) Walk(root string) error {
 			}
 			return err
 		}
-		if !valid(d.Name()) {
+		// skip directories and non-zip files
+		if d.IsDir() || !valid(d.Name()) {
+			return nil
+		}
+		// skip sub-directories
+		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
 			return nil
 		}
 		c.zips++

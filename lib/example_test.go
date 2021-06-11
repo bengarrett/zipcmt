@@ -27,19 +27,6 @@ func ExampleConfig_Read() {
 	//
 }
 
-func ExampleConfig_Scan() {
-	c := Config{
-		Print: true,
-		Quiet: true,
-	}
-	if err := c.Scan("../test"); err != nil {
-		log.Println(err)
-	}
-	// Output:
-	//This is an example test comment for zipcmmt.[0m
-	//
-}
-
 func ExampleConfig_Status() {
 	c := Config{
 		test: true,
