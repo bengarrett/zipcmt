@@ -96,13 +96,7 @@ func Read(name string, raw bool) (cmmt string, err error) {
 
 // WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
 func (c *Config) WalkDirs() {
-	// initialise maps
-	if c.exports == nil {
-		c.exports = make(export)
-	}
-	if c.hashes == nil {
-		c.hashes = make(hash)
-	}
+	c.init()
 	// sanitize the export directory
 	if err := c.clean(); err != nil {
 		c.Error(err)
@@ -117,13 +111,7 @@ func (c *Config) WalkDirs() {
 
 // WalkDir walks the root directory for zip archives and to extract any found comments.
 func (c *Config) WalkDir(root string) error {
-	// initialise maps
-	if c.exports == nil {
-		c.exports = make(export)
-	}
-	if c.hashes == nil {
-		c.hashes = make(hash)
-	}
+	c.init()
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
@@ -220,6 +208,16 @@ func (c *Config) clean() error {
 		}
 	}
 	return nil
+}
+
+// init initialise the Config maps.
+func (c *Config) init() {
+	if c.exports == nil {
+		c.exports = make(export)
+	}
+	if c.hashes == nil {
+		c.hashes = make(hash)
+	}
 }
 
 // lastMod preserves the zip files last modification date.
@@ -355,17 +353,17 @@ func valid(name string) bool {
 // The map contains a unique collection of previously used destination
 // paths, to avoid creating duplicate text filenames while using the
 // Save config.
-func (exports export) unique(zipPath, dest string) string {
+func (e export) unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename
 	if runtime.GOOS == "windows" {
 		name = strings.ToLower(name)
 	}
 	path := filepath.Join(dest, name)
-	if f := exports.find(path); f != path {
+	if f := e.find(path); f != path {
 		path = f
 	}
-	exports[path] = true
+	e[path] = true
 	return path
 }
 
