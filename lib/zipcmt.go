@@ -17,13 +17,15 @@ import (
 	"time"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 )
 
 type Config struct {
 	Timer     time.Time
+	Args      []string
 	Save      string
-	logname   string
+	LogName   string
 	Dupes     bool
 	Export    bool
 	Log       bool
@@ -36,11 +38,21 @@ type Config struct {
 	test      bool
 	zips      int
 	cmmts     int
+	saved     int
+	exports   int
+	hashes    int
 }
 
 type (
 	export map[string]bool
 	hash   map[[32]byte]bool
+	save   struct {
+		name string
+		src  string
+		cmmt string
+		mod  time.Time
+		ow   bool
+	}
 )
 
 const filename = "-zipcomment.txt"
@@ -132,33 +144,51 @@ func (c *Config) Walk(root string) error {
 			return nil
 		}
 		c.zips++
+		// read zip file comment
 		cmmt, err := c.Read(path)
 		if err != nil {
-			color.Error.Tips(fmt.Sprint(err))
+			c.Error(err)
 			return nil
 		}
 		if cmmt == "" {
 			return nil
 		}
+		// hash the comment
 		if !c.Dupes {
 			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
 			if hashes[hash] {
 				return nil
 			}
 			hashes[hash] = true
+			c.hashes = len(hashes)
 		}
 		c.cmmts++
+		// print the comment
 		fmt.Print(c.separator(path))
 		if c.Print {
 			stdout(cmmt)
 		}
-		mod := c.lastMod(d)
+		// save the comment to a text file
+		dat := save{
+			src:  path,
+			cmmt: cmmt,
+			mod:  c.lastMod(d),
+			ow:   c.Overwrite,
+		}
 		if c.Export {
-			save(exportName(path), cmmt, mod, c.Overwrite)
+			dat.name = exportName(path)
+			if c.save(dat) {
+				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
+				c.saved++
+			}
 		}
 		if c.Save != "" {
-			path = exports.unique(path, c.Save)
-			save(path, cmmt, mod, c.Overwrite)
+			dat.name = exports.unique(path, c.Save)
+			c.exports += len(dat.name)
+			if c.save(dat) {
+				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
+				c.saved++
+			}
 		}
 		return err
 	})
@@ -173,7 +203,7 @@ func (c *Config) lastMod(file fs.DirEntry) time.Time {
 	}
 	i, err := file.Info()
 	if err != nil {
-		color.Error.Tips(fmt.Sprint(err))
+		c.Error(err)
 		return zero
 	}
 	return i.ModTime()
@@ -200,6 +230,14 @@ func (c Config) separator(name string) string {
 
 // Status summarizes the zip files scan.
 func (c Config) Status() string {
+	if c.Log {
+		if c.Save != "" {
+			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.cmmts)
+			c.WriteLog(s)
+		}
+		s := fmt.Sprintf("Scan finished, time taken: %s", time.Since(c.Timer))
+		c.WriteLog(s)
+	}
 	if c.Quiet {
 		return ""
 	}
@@ -215,8 +253,12 @@ func (c Config) Status() string {
 	}
 	s := "\n"
 	s += color.Secondary.Sprint("Scanned ") +
-		color.Primary.Sprintf("%d zip %s", c.zips, a) +
-		color.Secondary.Sprint(" and found ") +
+		color.Primary.Sprintf("%d zip %s", c.zips, a)
+	if c.Save != "" && c.saved != c.cmmts {
+		s += color.Secondary.Sprint(", saved ") +
+			color.Primary.Sprintf("%d text files", c.saved)
+	}
+	s += color.Secondary.Sprint(" and found ") +
 		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
 	if !c.test {
 		s += color.Secondary.Sprint(", taking ") +
@@ -227,32 +269,36 @@ func (c Config) Status() string {
 
 // Save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt text files are skipped.
-func save(name, cmmt string, mod time.Time, ow bool) bool {
-	if cmmt == "" {
+func (c *Config) save(dat save) bool {
+	// name, cmmt string, mod time.Time, ow bool
+	if dat.cmmt == "" {
 		return false
 	}
-	if !ow {
-		if s, err := os.Stat(name); err == nil {
-			color.Info.Tips(fmt.Sprintf("export skipped, file already exists: %s (%dB)\n", name, s.Size()))
+	if !dat.ow {
+		if s, err := os.Stat(dat.name); err == nil {
+			size := humanize.Bytes(uint64(s.Size()))
+			info := fmt.Sprintf("export skipped, file already exists: %s (%s)", dat.name, size)
+			color.Info.Tips(info)
+			c.WriteLog(fmt.Sprintf("SKIP (exists): %s (%s)", dat.name, size))
 			return false
 		}
 	}
-	f, err := os.Create(name)
+	f, err := os.Create(dat.name)
 	if err != nil {
-		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
+		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 	}
 	defer f.Close()
-	if !mod.IsZero() {
-		defer os.Chtimes(name, time.Now(), mod)
+	if !dat.mod.IsZero() {
+		defer os.Chtimes(dat.name, time.Now(), dat.mod)
 	}
-	if cmmt[len(cmmt)-1:] != "\n" {
-		cmmt += "\n"
+	if dat.cmmt[len(dat.cmmt)-1:] != "\n" {
+		dat.cmmt += "\n"
 	}
-	if i, err := f.Write([]byte(cmmt)); err != nil {
-		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
+	if i, err := f.Write([]byte(dat.cmmt)); err != nil {
+		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 	} else if i == 0 {
-		if err1 := os.Remove(name); err1 != nil {
-			color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err1)))
+		if err1 := os.Remove(dat.name); err1 != nil {
+			c.Error(fmt.Errorf("%s: %w", dat.name, err1))
 		}
 	}
 	return true
