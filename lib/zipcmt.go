@@ -150,6 +150,8 @@ func (c *Config) WalkDir(root string) error {
 		fmt.Print(c.separator(path))
 		if c.Print {
 			stdout(cmmt)
+		} else if !c.Quiet {
+			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
 		}
 		// save the comment to a text file
 		dat := save{
@@ -277,6 +279,9 @@ func (c Config) Status() string {
 		unq = "unique "
 	}
 	s := "\n"
+	if !c.Print {
+		s = "\r"
+	}
 	s += color.Secondary.Sprint("Scanned ") +
 		color.Primary.Sprintf("%d zip %s", c.zips, a)
 	if c.Save != "" && c.saved != c.cmmts {
