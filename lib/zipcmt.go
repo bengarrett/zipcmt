@@ -23,7 +23,7 @@ import (
 
 type Config struct {
 	Timer     time.Time
-	Args      []string
+	Dirs      []string
 	Save      string
 	LogName   string
 	Dupes     bool
@@ -38,9 +38,10 @@ type Config struct {
 	test      bool
 	zips      int
 	cmmts     int
+	names     int
 	saved     int
-	exports   int
-	hashes    int
+	exports   export
+	hashes    hash
 }
 
 type (
@@ -65,8 +66,132 @@ var (
 	ErrValid   = errors.New("the operating system reports this directory is invalid")
 )
 
-// Clean the syntax of the target export directory path.
-func (c *Config) Clean() error {
+// Read the named zip file and return the zip comment.
+// The Raw config will return the comment in its original legacy encoding.
+// Otherwise the comment is returned as Unicode text.
+func Read(name string, raw bool) (cmmt string, err error) {
+	r, err := zip.OpenReader(name)
+	if err != nil {
+		return "", nil
+	}
+	defer r.Close()
+	if cmmt := r.Comment; cmmt != "" {
+		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
+			return "", nil
+		}
+		if strings.TrimSpace(cmmt) == "" {
+			return "", nil
+		}
+		if raw {
+			b, err := convert.D437(cmmt)
+			if err != nil {
+				return "", err
+			}
+			cmmt = string(b)
+		}
+		return cmmt, nil
+	}
+	return "", nil
+}
+
+// WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
+func (c *Config) WalkDirs() {
+	// initialise maps
+	if c.exports == nil {
+		c.exports = make(export)
+	}
+	if c.hashes == nil {
+		c.hashes = make(hash)
+	}
+	// sanitize the export directory
+	if err := c.clean(); err != nil {
+		c.Error(err)
+	}
+	// walk through the directories provided
+	for _, root := range c.Dirs {
+		if err := c.WalkDir(root); err != nil {
+			c.Error(err)
+		}
+	}
+}
+
+// WalkDir walks the root directory for zip archives and to extract any found comments.
+func (c *Config) WalkDir(root string) error {
+	// initialise maps
+	if c.exports == nil {
+		c.exports = make(export)
+	}
+	if c.hashes == nil {
+		c.hashes = make(hash)
+	}
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if errors.Is(err, fs.ErrPermission) {
+				return nil
+			}
+			return err
+		}
+		// skip directories and non-zip files
+		if d.IsDir() || !valid(d.Name()) {
+			return nil
+		}
+		// skip sub-directories
+		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
+			return nil
+		}
+		c.zips++
+		// read zip file comment
+		cmmt, err := Read(path, c.Raw)
+		if err != nil {
+			c.Error(err)
+			return nil
+		}
+		if cmmt == "" {
+			return nil
+		}
+		// hash the comment
+		if !c.Dupes {
+			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
+			if c.hashes[hash] {
+				return nil
+			}
+			c.hashes[hash] = true
+		}
+		c.cmmts++
+		// print the comment
+		fmt.Print(c.separator(path))
+		if c.Print {
+			stdout(cmmt)
+		}
+		// save the comment to a text file
+		dat := save{
+			src:  path,
+			cmmt: cmmt,
+			mod:  c.lastMod(d),
+			ow:   c.Overwrite,
+		}
+		if c.Export {
+			dat.name = exportName(path)
+			if c.save(dat) {
+				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
+				c.saved++
+			}
+		}
+		if c.Save != "" {
+			dat.name = c.exports.unique(path, c.Save)
+			c.names += len(dat.name)
+			if c.save(dat) {
+				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
+				c.saved++
+			}
+		}
+		return err
+	})
+	return err
+}
+
+// clean the syntax of the target export directory path.
+func (c *Config) clean() error {
 	if c.Save != "" {
 		c.Save = filepath.Clean(c.Save)
 		p := strings.Split(c.Save, string(filepath.Separator))
@@ -95,104 +220,6 @@ func (c *Config) Clean() error {
 		}
 	}
 	return nil
-}
-
-// Read the named zip file and return the zip comment.
-// The Raw config will return the comment in its original legacy encoding.
-// Otherwise the comment is returned as Unicode text.
-func (c Config) Read(name string) (cmmt string, err error) {
-	r, err := zip.OpenReader(name)
-	if err != nil {
-		return "", nil
-	}
-	defer r.Close()
-	if cmmt := r.Comment; cmmt != "" {
-		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
-			return "", nil
-		}
-		if strings.TrimSpace(cmmt) == "" {
-			return "", nil
-		}
-		if !c.Raw {
-			b, err := convert.D437(cmmt)
-			if err != nil {
-				return "", err
-			}
-			cmmt = string(b)
-		}
-		return cmmt, nil
-	}
-	return "", nil
-}
-
-// Walk the root directory plus all subdirectories for zip archives and parse any found comments.
-func (c *Config) Walk(root string) error {
-	exports, hashes := export{}, hash{}
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			if errors.Is(err, fs.ErrPermission) {
-				return nil
-			}
-			return err
-		}
-		// skip directories and non-zip files
-		if d.IsDir() || !valid(d.Name()) {
-			return nil
-		}
-		// skip sub-directories
-		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
-			return nil
-		}
-		c.zips++
-		// read zip file comment
-		cmmt, err := c.Read(path)
-		if err != nil {
-			c.Error(err)
-			return nil
-		}
-		if cmmt == "" {
-			return nil
-		}
-		// hash the comment
-		if !c.Dupes {
-			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
-			if hashes[hash] {
-				return nil
-			}
-			hashes[hash] = true
-			c.hashes = len(hashes)
-		}
-		c.cmmts++
-		// print the comment
-		fmt.Print(c.separator(path))
-		if c.Print {
-			stdout(cmmt)
-		}
-		// save the comment to a text file
-		dat := save{
-			src:  path,
-			cmmt: cmmt,
-			mod:  c.lastMod(d),
-			ow:   c.Overwrite,
-		}
-		if c.Export {
-			dat.name = exportName(path)
-			if c.save(dat) {
-				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
-				c.saved++
-			}
-		}
-		if c.Save != "" {
-			dat.name = exports.unique(path, c.Save)
-			c.exports += len(dat.name)
-			if c.save(dat) {
-				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
-				c.saved++
-			}
-		}
-		return err
-	})
-	return err
 }
 
 // lastMod preserves the zip files last modification date.

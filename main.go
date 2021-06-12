@@ -78,18 +78,11 @@ func main() {
 	if *a {
 		c.Dupes = true
 	}
-	c.Args = flag.Args()
-	// sanitize the export directory
-	if err := c.Clean(); err != nil {
-		c.Error(err)
-	}
+	// directories to scan
+	c.Dirs = flag.Args()
 	// file and directory scan
-	// TODO: MOVE TO zipcmt.go to share exports, hashes := export{}, hash{} between flag.Args!!
-	for _, root := range flag.Args() {
-		if err := c.Walk(root); err != nil {
-			c.Error(err)
-		}
-	}
+	c.WalkDirs()
+	// summaries
 	fmt.Println(c.Status())
 	if c.LogName != "" {
 		fmt.Printf("%s %s\n", "The log is found at", color.Primary.Sprint(c.LogName))

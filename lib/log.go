@@ -57,10 +57,10 @@ func (c *Config) WriteLog(s string) {
 	}
 	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.zips, c.cmmts)
 	if !c.Dupes {
-		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(c.hashes*32)))
+		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*32)))
 	}
 	if c.Save != "" {
-		l += fmt.Sprintf("exports: %s; ", humanize.Bytes(uint64(c.exports)))
+		l += fmt.Sprintf("names: %s; ", humanize.Bytes(uint64(c.names)))
 	}
 	l += fmt.Sprintf("%s\n", s)
 	logger.Printf(l)
