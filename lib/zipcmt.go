@@ -128,6 +128,9 @@ func (c *Config) WalkDir(root string) error {
 			return nil
 		}
 		c.zips++
+		if !c.Print && !c.Quiet {
+			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
+		}
 		// read zip file comment
 		cmmt, err := Read(path, c.Raw)
 		if err != nil {
@@ -150,8 +153,6 @@ func (c *Config) WalkDir(root string) error {
 		fmt.Print(c.separator(path))
 		if c.Print {
 			stdout(cmmt)
-		} else if !c.Quiet {
-			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
 		}
 		// save the comment to a text file
 		dat := save{
