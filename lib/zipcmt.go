@@ -82,7 +82,7 @@ func Read(name string, raw bool) (cmmt string, err error) {
 		if strings.TrimSpace(cmmt) == "" {
 			return "", nil
 		}
-		if raw {
+		if !raw {
 			b, err := convert.D437(cmmt)
 			if err != nil {
 				return "", err
