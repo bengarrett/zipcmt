@@ -48,8 +48,8 @@ rpm -i zipcmt.rpm
 
 Windows [Scoop](https://scoop.sh/)
 ```sh
-scoop bucket add bengarrett https://github.com/bengarrett/zipcmt.git
-scoop install bengarrett/zipcmt
+scoop bucket add zipcmt https://github.com/bengarrett/zipcmt.git
+scoop install zipcmt
 ```
 
 ## Windows Performance
