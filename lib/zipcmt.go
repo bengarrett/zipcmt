@@ -128,7 +128,7 @@ func (c *Config) WalkDir(root string) error {
 			return nil
 		}
 		c.zips++
-		if !c.Print && !c.Quiet {
+		if !c.test && !c.Print && !c.Quiet {
 			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
 		}
 		// read zip file comment
@@ -280,7 +280,7 @@ func (c Config) Status() string {
 		unq = "unique "
 	}
 	s := "\n"
-	if !c.Print {
+	if !c.test && !c.Print {
 		s = "\r"
 	}
 	s += color.Secondary.Sprint("Scanned ") +
@@ -293,7 +293,7 @@ func (c Config) Status() string {
 		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
 	if !c.test {
 		s += color.Secondary.Sprint(", taking ") +
-			color.Primary.Sprintf("%s", time.Since(c.Timer))
+			color.Primary.Sprintf("%s", time.Since(c.Timer)) + "\n"
 	}
 	return s
 }
