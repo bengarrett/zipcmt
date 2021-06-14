@@ -17,27 +17,43 @@ import (
 	"time"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 )
 
 type Config struct {
 	Timer     time.Time
+	Dirs      []string
 	Save      string
+	LogName   string
 	Dupes     bool
 	Export    bool
+	Log       bool
 	Overwrite bool
 	Now       bool
+	NoWalk    bool
 	Raw       bool
 	Print     bool
 	Quiet     bool
 	test      bool
 	zips      int
 	cmmts     int
+	names     int
+	saved     int
+	exports   export
+	hashes    hash
 }
 
 type (
 	export map[string]bool
 	hash   map[[32]byte]bool
+	save   struct {
+		name string
+		src  string
+		cmmt string
+		mod  time.Time
+		ow   bool
+	}
 )
 
 const filename = "-zipcomment.txt"
@@ -50,8 +66,123 @@ var (
 	ErrValid   = errors.New("the operating system reports this directory is invalid")
 )
 
-// Clean the syntax of the target export directory path.
-func (c *Config) Clean() error {
+// Read the named zip file and return the zip comment.
+// The Raw config will return the comment in its original legacy encoding.
+// Otherwise the comment is returned as Unicode text.
+func Read(name string, raw bool) (cmmt string, err error) {
+	r, err := zip.OpenReader(name)
+	if err != nil {
+		return "", nil
+	}
+	defer r.Close()
+	if cmmt := r.Comment; cmmt != "" {
+		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
+			return "", nil
+		}
+		if strings.TrimSpace(cmmt) == "" {
+			return "", nil
+		}
+		if !raw {
+			b, err := convert.D437(cmmt)
+			if err != nil {
+				return "", err
+			}
+			cmmt = string(b)
+		}
+		return cmmt, nil
+	}
+	return "", nil
+}
+
+// WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
+func (c *Config) WalkDirs() {
+	c.init()
+	// sanitize the export directory
+	if err := c.clean(); err != nil {
+		c.Error(err)
+	}
+	// walk through the directories provided
+	for _, root := range c.Dirs {
+		if err := c.WalkDir(root); err != nil {
+			c.Error(err)
+		}
+	}
+}
+
+// WalkDir walks the root directory for zip archives and to extract any found comments.
+func (c *Config) WalkDir(root string) error {
+	c.init()
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if errors.Is(err, fs.ErrPermission) {
+				return nil
+			}
+			return err
+		}
+		// skip directories and non-zip files
+		if d.IsDir() || !valid(d.Name()) {
+			return nil
+		}
+		// skip sub-directories
+		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
+			return nil
+		}
+		c.zips++
+		if !c.Print && !c.Quiet {
+			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
+		}
+		// read zip file comment
+		cmmt, err := Read(path, c.Raw)
+		if err != nil {
+			c.Error(err)
+			return nil
+		}
+		if cmmt == "" {
+			return nil
+		}
+		// hash the comment
+		if !c.Dupes {
+			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
+			if c.hashes[hash] {
+				return nil
+			}
+			c.hashes[hash] = true
+		}
+		c.cmmts++
+		// print the comment
+		fmt.Print(c.separator(path))
+		if c.Print {
+			stdout(cmmt)
+		}
+		// save the comment to a text file
+		dat := save{
+			src:  path,
+			cmmt: cmmt,
+			mod:  c.lastMod(d),
+			ow:   c.Overwrite,
+		}
+		if c.Export {
+			dat.name = exportName(path)
+			if c.save(dat) {
+				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
+				c.saved++
+			}
+		}
+		if c.Save != "" {
+			dat.name = c.exports.unique(path, c.Save)
+			c.names += len(dat.name)
+			if c.save(dat) {
+				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
+				c.saved++
+			}
+		}
+		return err
+	})
+	return err
+}
+
+// clean the syntax of the target export directory path.
+func (c *Config) clean() error {
 	if c.Save != "" {
 		c.Save = filepath.Clean(c.Save)
 		p := strings.Split(c.Save, string(filepath.Separator))
@@ -82,124 +213,14 @@ func (c *Config) Clean() error {
 	return nil
 }
 
-// Read the named zip file and return the zip comment.
-// The Raw config will return the comment in its original legacy encoding.
-// Otherwise the comment is returned as Unicode text.
-func (c Config) Read(name string) (cmmt string, err error) {
-	r, err := zip.OpenReader(name)
-	if err != nil {
-		return "", nil
+// init initialise the Config maps.
+func (c *Config) init() {
+	if c.exports == nil {
+		c.exports = make(export)
 	}
-	defer r.Close()
-	if cmmt := r.Comment; cmmt != "" {
-		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
-			return "", nil
-		}
-		if strings.TrimSpace(cmmt) == "" {
-			return "", nil
-		}
-		if !c.Raw {
-			b, err := convert.D437(cmmt)
-			if err != nil {
-				return "", err
-			}
-			cmmt = string(b)
-		}
-		return cmmt, nil
+	if c.hashes == nil {
+		c.hashes = make(hash)
 	}
-	return "", nil
-}
-
-// Scan the root directory for zip archives and parse any found comments.
-func (c *Config) Scan(root string) error {
-	exports, hashes := export{}, hash{}
-	files, err := os.ReadDir(root)
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		path := filepath.Join(root, file.Name())
-		if !valid(path) {
-			continue
-		}
-		c.zips++
-		cmmt, err := c.Read(path)
-		if err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-			continue
-		}
-		if cmmt == "" {
-			continue
-		}
-		if !c.Dupes {
-			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
-			if hashes[hash] {
-				continue
-			}
-			hashes[hash] = true
-		}
-		c.cmmts++
-		fmt.Print(c.separator(path))
-		if c.Print {
-			stdout(cmmt)
-		}
-		mod := c.lastMod(file)
-		if c.Export {
-			save(exportName(path), cmmt, mod, c.Overwrite)
-		}
-		if c.Save != "" {
-			path = exports.unique(path, c.Save)
-			save(path, cmmt, mod, c.Overwrite)
-		}
-	}
-	return nil
-}
-
-// Walk the root directory plus all subdirectories for zip archives and parse any found comments.
-func (c *Config) Walk(root string) error {
-	exports, hashes := export{}, hash{}
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			if errors.Is(err, fs.ErrPermission) {
-				return nil
-			}
-			return err
-		}
-		if !valid(d.Name()) {
-			return nil
-		}
-		c.zips++
-		cmmt, err := c.Read(path)
-		if err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-			return nil
-		}
-		if cmmt == "" {
-			return nil
-		}
-		if !c.Dupes {
-			hash := sha256.Sum256([]byte(strings.TrimSpace(cmmt)))
-			if hashes[hash] {
-				return nil
-			}
-			hashes[hash] = true
-		}
-		c.cmmts++
-		fmt.Print(c.separator(path))
-		if c.Print {
-			stdout(cmmt)
-		}
-		mod := c.lastMod(d)
-		if c.Export {
-			save(exportName(path), cmmt, mod, c.Overwrite)
-		}
-		if c.Save != "" {
-			path = exports.unique(path, c.Save)
-			save(path, cmmt, mod, c.Overwrite)
-		}
-		return err
-	})
-	return err
 }
 
 // lastMod preserves the zip files last modification date.
@@ -210,7 +231,7 @@ func (c *Config) lastMod(file fs.DirEntry) time.Time {
 	}
 	i, err := file.Info()
 	if err != nil {
-		color.Error.Tips(fmt.Sprint(err))
+		c.Error(err)
 		return zero
 	}
 	return i.ModTime()
@@ -237,6 +258,14 @@ func (c Config) separator(name string) string {
 
 // Status summarizes the zip files scan.
 func (c Config) Status() string {
+	if c.Log {
+		if c.Save != "" {
+			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.cmmts)
+			c.WriteLog(s)
+		}
+		s := fmt.Sprintf("Scan finished, time taken: %s", time.Since(c.Timer))
+		c.WriteLog(s)
+	}
 	if c.Quiet {
 		return ""
 	}
@@ -251,9 +280,16 @@ func (c Config) Status() string {
 		unq = "unique "
 	}
 	s := "\n"
+	if !c.Print {
+		s = "\r"
+	}
 	s += color.Secondary.Sprint("Scanned ") +
-		color.Primary.Sprintf("%d zip %s", c.zips, a) +
-		color.Secondary.Sprint(" and found ") +
+		color.Primary.Sprintf("%d zip %s", c.zips, a)
+	if c.Save != "" && c.saved != c.cmmts {
+		s += color.Secondary.Sprint(", saved ") +
+			color.Primary.Sprintf("%d text files", c.saved)
+	}
+	s += color.Secondary.Sprint(" and found ") +
 		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
 	if !c.test {
 		s += color.Secondary.Sprint(", taking ") +
@@ -264,32 +300,36 @@ func (c Config) Status() string {
 
 // Save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt text files are skipped.
-func save(name, cmmt string, mod time.Time, ow bool) bool {
-	if cmmt == "" {
+func (c *Config) save(dat save) bool {
+	// name, cmmt string, mod time.Time, ow bool
+	if dat.cmmt == "" {
 		return false
 	}
-	if !ow {
-		if s, err := os.Stat(name); err == nil {
-			color.Info.Tips(fmt.Sprintf("export skipped, file already exists: %s (%dB)\n", name, s.Size()))
+	if !dat.ow {
+		if s, err := os.Stat(dat.name); err == nil {
+			size := humanize.Bytes(uint64(s.Size()))
+			info := fmt.Sprintf("export skipped, file already exists: %s (%s)", dat.name, size)
+			color.Info.Tips(info)
+			c.WriteLog(fmt.Sprintf("SKIP (exists): %s (%s)", dat.name, size))
 			return false
 		}
 	}
-	f, err := os.Create(name)
+	f, err := os.Create(dat.name)
 	if err != nil {
-		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
+		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 	}
 	defer f.Close()
-	if !mod.IsZero() {
-		defer os.Chtimes(name, time.Now(), mod)
+	if !dat.mod.IsZero() {
+		defer os.Chtimes(dat.name, time.Now(), dat.mod)
 	}
-	if cmmt[len(cmmt)-1:] != "\n" {
-		cmmt += "\n"
+	if dat.cmmt[len(dat.cmmt)-1:] != "\n" {
+		dat.cmmt += "\n"
 	}
-	if i, err := f.Write([]byte(cmmt)); err != nil {
-		color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err)))
+	if i, err := f.Write([]byte(dat.cmmt)); err != nil {
+		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 	} else if i == 0 {
-		if err1 := os.Remove(name); err1 != nil {
-			color.Error.Tips(fmt.Sprint(fmt.Errorf("%s: %w", name, err1)))
+		if err1 := os.Remove(dat.name); err1 != nil {
+			c.Error(fmt.Errorf("%s: %w", dat.name, err1))
 		}
 	}
 	return true
@@ -319,17 +359,17 @@ func valid(name string) bool {
 // The map contains a unique collection of previously used destination
 // paths, to avoid creating duplicate text filenames while using the
 // Save config.
-func (exports export) unique(zipPath, dest string) string {
+func (e export) unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename
 	if runtime.GOOS == "windows" {
 		name = strings.ToLower(name)
 	}
 	path := filepath.Join(dest, name)
-	if f := exports.find(path); f != path {
+	if f := e.find(path); f != path {
 		path = f
 	}
-	exports[path] = true
+	e[path] = true
 	return path
 }
 

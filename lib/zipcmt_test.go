@@ -46,14 +46,14 @@ func TestConfig_Clean(t *testing.T) {
 				zips:      tt.fields.zips,
 				cmmts:     tt.fields.cmmts,
 			}
-			if err := c.Clean(); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Clean() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.clean(); (err != nil) != tt.wantErr {
+				t.Errorf("Config.cean() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestConfig_Read(t *testing.T) {
+func Test_Read(t *testing.T) {
 	type fields struct {
 		Save      string
 		Export    bool
@@ -79,24 +79,13 @@ func TestConfig_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := Config{
-				Save:      tt.fields.Save,
-				Export:    tt.fields.Export,
-				Dupes:     tt.fields.Dupes,
-				Overwrite: tt.fields.Overwrite,
-				Raw:       tt.fields.Raw,
-				Print:     tt.fields.Print,
-				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
-			}
-			gotCmmt, err := c.Read(tt.fname)
+			gotCmmt, err := Read(tt.fname, tt.fields.Raw)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Config.Read() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if len(gotCmmt) > 0 != tt.wantCmmt {
-				t.Errorf("Config.Read() = %v, want %v", gotCmmt, tt.wantCmmt)
+				t.Errorf("Read() = %v, want %v", gotCmmt, tt.wantCmmt)
 			}
 		})
 	}
@@ -143,25 +132,7 @@ func TestConfig_Scans(t *testing.T) {
 				zips:      tt.fields.zips,
 				cmmts:     tt.fields.cmmts,
 			}
-			if err := c.Scan(tt.root); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Scan() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
-				Save:      tt.fields.Save,
-				Export:    tt.fields.Export,
-				Dupes:     tt.fields.Dupes,
-				Overwrite: tt.fields.Overwrite,
-				Raw:       tt.fields.Raw,
-				Print:     tt.fields.Print,
-				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
-			}
-			if err := c.Walk(tt.root); (err != nil) != tt.wantErr {
+			if err := c.WalkDir(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

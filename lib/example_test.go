@@ -13,11 +13,8 @@ func init() {
 	color.Enable = false
 }
 
-func ExampleConfig_Read() {
-	c := Config{
-		Raw: false,
-	}
-	s, err := c.Read("../test/test-with-comment.zip")
+func ExampleRead() {
+	s, err := Read("../test/test-with-comment.zip", false)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -27,24 +24,11 @@ func ExampleConfig_Read() {
 	//
 }
 
-func ExampleConfig_Scan() {
-	c := Config{
-		Print: true,
-		Quiet: true,
-	}
-	if err := c.Scan("../test"); err != nil {
-		log.Println(err)
-	}
-	// Output:
-	//This is an example test comment for zipcmmt.[0m
-	//
-}
-
 func ExampleConfig_Status() {
 	c := Config{
 		test: true,
 	}
-	if err := c.Walk("../test"); err != nil {
+	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
 	fmt.Print(c.Status())
@@ -53,7 +37,7 @@ func ExampleConfig_Status() {
 		Dupes: true,
 		test:  true,
 	}
-	if err := c.Walk("../test"); err != nil {
+	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
 	fmt.Print(c.Status())

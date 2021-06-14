@@ -31,14 +31,15 @@ const winOS = "windows"
 func main() {
 	const ellipsis = "\u2026"
 	var c zipcmt.Config
-	var noprint, norecursive bool
+	var noprint bool
 	c.Timer = time.Now()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal to improve the performance of the scan")
-	flag.BoolVar(&norecursive, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
+	flag.BoolVar(&c.NoWalk, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as text files stored alongside the zip files (%s)",
 		color.Danger.Sprint("use at your own risk")))
 	flag.BoolVar(&c.Dupes, "all", false, "show all comments, including duplicates in multiple zips")
 	flag.BoolVar(&c.Now, "now", false, "do not use the last modification date sourced from the zip files")
+	flag.BoolVar(&c.Log, "log", false, "create a logfile for debugging")
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment text files")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
@@ -58,7 +59,7 @@ func main() {
 	flags(ver, v)
 	// parse aliases
 	if *r {
-		norecursive = true
+		c.NoWalk = true
 	}
 	if *u || noprint {
 		c.Print = false
@@ -77,27 +78,15 @@ func main() {
 	if *a {
 		c.Dupes = true
 	}
-	// sanitize the export directory
-	if err := c.Clean(); err != nil {
-		color.Error.Tips(fmt.Sprint(err))
-	}
-	// recursive directory scan
-	if !norecursive {
-		for _, root := range flag.Args() {
-			if err := c.Walk(root); err != nil {
-				color.Error.Tips(fmt.Sprint(err))
-			}
-			fmt.Println(c.Status())
-		}
-		return
-	}
-	// default flat directory scan
-	for _, root := range flag.Args() {
-		if err := c.Scan(root); err != nil {
-			color.Error.Tips(fmt.Sprint(err))
-		}
-	}
+	// directories to scan
+	c.Dirs = flag.Args()
+	// file and directory scan
+	c.WalkDirs()
+	// summaries
 	fmt.Println(c.Status())
+	if c.LogName != "" {
+		fmt.Printf("%s %s\n", "The log is found at", color.Primary.Sprint(c.LogName))
+	}
 }
 
 func flags(ver, v *bool) {

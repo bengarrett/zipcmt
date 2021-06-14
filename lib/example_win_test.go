@@ -8,23 +8,23 @@ import (
 	"log"
 )
 
-func ExampleConfig_Clean() {
+func ExampleConfig_clean() {
 	c := Config{
 		Save: "..//test///.",
 	}
-	if err := c.Clean(); err != nil {
+	if err := c.clean(); err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Print(c.Save)
 	// Output: ..\test
 }
 
-func ExampleConfig_Walk() {
+func ExampleConfig_WalkDir() {
 	c := Config{
 		Print: true,
 		Dupes: true,
 	}
-	if err := c.Walk("../test"); err != nil {
+	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
 	// Output:
