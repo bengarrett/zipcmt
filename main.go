@@ -83,8 +83,8 @@ func main() {
 	c.WalkDirs()
 	// summaries
 	fmt.Println(c.Status())
-	if c.LogName != "" {
-		fmt.Printf("%s %s\n", "The log is found at", color.Primary.Sprint(c.LogName))
+	if s := c.LogName(); s != "" {
+		fmt.Printf("%s %s\n", "The log is found at", color.Primary.Sprint(s))
 	}
 }
 

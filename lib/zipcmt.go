@@ -23,8 +23,7 @@ import (
 
 type Config struct {
 	Dirs      []string
-	Save      string
-	LogName   string
+	Save      string // rename to SaveName
 	Dupes     bool
 	Export    bool
 	Log       bool
@@ -39,6 +38,7 @@ type Config struct {
 
 type internal struct {
 	test    bool
+	log     string
 	zips    int
 	cmmts   int
 	names   int
@@ -48,14 +48,27 @@ type internal struct {
 	timer   time.Time
 }
 
+// SetLog sets the full path to a new log file with a name based on the current date and time.
+func (i *internal) SetLog() {
+	i.log = logName()
+}
+
+// SetTest toggles the unit test mode flag.
 func (i *internal) SetTest() {
 	i.test = true
 }
 
+// SetTimer initializes a timer for process time.
 func (i *internal) SetTimer() {
 	i.timer = time.Now()
 }
 
+// SetLog returns the full path to the log file.
+func (i *internal) LogName() string {
+	return i.log
+}
+
+// Timer returns the time since the SetTimer was triggered.
 func (i *internal) Timer() time.Duration {
 	return time.Since(i.timer)
 }

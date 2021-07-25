@@ -32,16 +32,16 @@ func (c *Config) WriteLog(s string) {
 		return
 	}
 
-	if c.LogName == "" {
-		c.LogName = logName()
-		d := filepath.Dir(c.LogName)
+	if c.LogName() == "" {
+		c.SetLog()
+		d := filepath.Dir(c.LogName())
 		_, err := os.Stat(d)
 		if os.IsNotExist(err) {
 			os.MkdirAll(d, 0755)
 		}
 	}
 
-	f, err1 := os.OpenFile(c.LogName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err1 != nil {
 		log.Fatalln(err1)
 	}
@@ -85,7 +85,6 @@ func (c *Config) logHeader(logger *log.Logger) {
 	w.Flush()
 }
 
-// logName returns the full path to a new log file.
 func logName() string {
 	const yyyymmddTime = "20060102150405"
 	filename := time.Now().Format(yyyymmddTime) + ".log"
