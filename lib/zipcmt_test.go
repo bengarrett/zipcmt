@@ -12,7 +12,7 @@ import (
 
 func TestConfig_Clean(t *testing.T) {
 	type fields struct {
-		Save      string
+		SaveName  string
 		Export    bool
 		Dupes     bool
 		Overwrite bool
@@ -28,15 +28,15 @@ func TestConfig_Clean(t *testing.T) {
 		wantErr bool
 	}{
 		{"empty", fields{}, false},
-		{"missing", fields{Save: "/no/such/directory"}, true},
-		{"file", fields{Save: "../test/test.txt"}, true},
-		{"dir", fields{Save: "../test"}, false},
-		{"home", fields{Save: "~"}, false},
+		{"missing", fields{SaveName: "/no/such/directory"}, true},
+		{"file", fields{SaveName: "../test/test.txt"}, true},
+		{"dir", fields{SaveName: "../test"}, false},
+		{"home", fields{SaveName: "~"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				Save:      tt.fields.Save,
+				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
 				Overwrite: tt.fields.Overwrite,
@@ -91,7 +91,7 @@ func Test_Read(t *testing.T) {
 
 func TestConfig_Scans(t *testing.T) {
 	type fields struct {
-		Save      string
+		SaveName  string
 		Export    bool
 		Dupes     bool
 		Overwrite bool
@@ -115,12 +115,12 @@ func TestConfig_Scans(t *testing.T) {
 		{"no root", fields{}, "", true},
 		{"bad root", fields{}, "../test/missing", true},
 		{"test dir", fields{Dupes: true}, "../test", false},
-		{"exportdir", fields{Dupes: true, Save: tmp}, "../test", false},
+		{"exportdir", fields{Dupes: true, SaveName: tmp}, "../test", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				Save:      tt.fields.Save,
+				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
 				Overwrite: tt.fields.Overwrite,
@@ -139,7 +139,7 @@ func TestConfig_Scans(t *testing.T) {
 
 func TestConfig_separator(t *testing.T) {
 	type fields struct {
-		Save      string
+		SaveName  string
 		Export    bool
 		Dupes     bool
 		Overwrite bool
@@ -162,7 +162,7 @@ func TestConfig_separator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				Save:      tt.fields.Save,
+				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
 				Overwrite: tt.fields.Overwrite,
@@ -182,7 +182,7 @@ func TestConfig_separator(t *testing.T) {
 func TestConfig_Status(t *testing.T) {
 	color.Enable = false
 	type fields struct {
-		Save      string
+		SaveName  string
 		Export    bool
 		Dupes     bool
 		Overwrite bool
@@ -204,7 +204,7 @@ func TestConfig_Status(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := Config{
-				Save:      tt.fields.Save,
+				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
 				Overwrite: tt.fields.Overwrite,

@@ -23,7 +23,7 @@ import (
 
 type Config struct {
 	Dirs      []string
-	Save      string // rename to SaveName
+	SaveName  string
 	Dupes     bool
 	Export    bool
 	Log       bool
@@ -197,8 +197,8 @@ func (c *Config) WalkDir(root string) error {
 				c.saved++
 			}
 		}
-		if c.Save != "" {
-			dat.name = c.exports.unique(path, c.Save)
+		if c.SaveName != "" {
+			dat.name = c.exports.unique(path, c.SaveName)
 			c.names += len(dat.name)
 			if c.save(dat) {
 				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
@@ -212,32 +212,33 @@ func (c *Config) WalkDir(root string) error {
 
 // clean the syntax of the target export directory path.
 func (c *Config) clean() error {
-	if c.Save != "" {
-		c.Save = filepath.Clean(c.Save)
-		p := strings.Split(c.Save, string(filepath.Separator))
+	if name := c.SaveName; name != "" {
+		name = filepath.Clean(name)
+		p := strings.Split(name, string(filepath.Separator))
 		if p[0] == "~" {
 			hd, err := os.UserHomeDir()
 			if err != nil {
 				return err
 			}
-			c.Save = strings.Replace(c.Save, "~", hd, 1)
+			name = strings.Replace(name, "~", hd, 1)
 		}
-		s, err := os.Stat(c.Save)
+		s, err := os.Stat(name)
 		if errors.Is(err, fs.ErrInvalid) {
-			return fmt.Errorf("%s: export %w", c.Save, ErrValid)
+			return fmt.Errorf("%s: export %w", name, ErrValid)
 		}
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("%s: export %w", c.Save, ErrMissing)
+			return fmt.Errorf("%s: export %w", name, ErrMissing)
 		}
 		if errors.Is(err, fs.ErrPermission) {
-			return fmt.Errorf("%s: export %w", c.Save, ErrPerm)
+			return fmt.Errorf("%s: export %w", name, ErrPerm)
 		}
 		if err != nil {
-			return fmt.Errorf("%s: export %w", c.Save, err)
+			return fmt.Errorf("%s: export %w", name, err)
 		}
 		if !s.IsDir() {
-			return fmt.Errorf("%s: export %w", c.Save, ErrIsFile)
+			return fmt.Errorf("%s: export %w", name, ErrIsFile)
 		}
+		c.SaveName = name
 	}
 	return nil
 }
@@ -288,7 +289,7 @@ func (c Config) separator(name string) string {
 // Status summarizes the zip files scan.
 func (c Config) Status() string {
 	if c.Log {
-		if c.Save != "" {
+		if c.SaveName != "" {
 			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.cmmts)
 			c.WriteLog(s)
 		}
@@ -314,7 +315,7 @@ func (c Config) Status() string {
 	}
 	s += color.Secondary.Sprint("Scanned ") +
 		color.Primary.Sprintf("%d zip %s", c.zips, a)
-	if c.Save != "" && c.saved != c.cmmts {
+	if c.SaveName != "" && c.saved != c.cmmts {
 		s += color.Secondary.Sprint(", saved ") +
 			color.Primary.Sprintf("%d text files", c.saved)
 	}
@@ -327,7 +328,7 @@ func (c Config) Status() string {
 	return s
 }
 
-// Save a zip cmmt to the file path.
+// SaveName a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt text files are skipped.
 func (c *Config) save(dat save) bool {
 	// name, cmmt string, mod time.Time, ow bool
@@ -387,7 +388,7 @@ func valid(name string) bool {
 // unique checks the destination path against an export map.
 // The map contains a unique collection of previously used destination
 // paths, to avoid creating duplicate text filenames while using the
-// Save config.
+// SaveName config.
 func (e export) unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename

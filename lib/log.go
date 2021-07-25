@@ -59,7 +59,7 @@ func (c *Config) WriteLog(s string) {
 	if !c.Dupes {
 		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*32)))
 	}
-	if c.Save != "" {
+	if c.SaveName != "" {
 		l += fmt.Sprintf("names: %s; ", humanize.Bytes(uint64(c.names)))
 	}
 	l += fmt.Sprintf("%s\n", s)

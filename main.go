@@ -42,7 +42,7 @@ func main() {
 	flag.BoolVar(&c.Overwrite, "overwrite", false, "overwrite any previously exported comment text files")
 	flag.BoolVar(&c.Quiet, "quiet", false, "suppress zipcmt feedback except for errors")
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
-	flag.StringVar(&c.Save, "save", "", "save the comments to uniquely named textfiles in this directory")
+	flag.StringVar(&c.SaveName, "save", "", "save the comments to uniquely named textfiles in this directory")
 	ver := flag.Bool("version", false, "version and information for this program")
 	a := flag.Bool("a", false, "alias for all")
 	o := flag.Bool("o", false, "alias for overwrite")
@@ -66,7 +66,7 @@ func main() {
 		c.Print = true
 	}
 	if *s != "" {
-		c.Save = *s
+		c.SaveName = *s
 	}
 	if *o {
 		c.Overwrite = true
