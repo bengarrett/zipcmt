@@ -43,9 +43,9 @@ func TestConfig_Clean(t *testing.T) {
 				Raw:       tt.fields.Raw,
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
 			}
+			c.zips = tt.fields.zips
+			c.cmmts = tt.fields.cmmts
 			if err := c.clean(); (err != nil) != tt.wantErr {
 				t.Errorf("Config.cean() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -62,8 +62,6 @@ func Test_Read(t *testing.T) {
 		Raw       bool
 		Print     bool
 		Quiet     bool
-		zips      int
-		cmmts     int
 	}
 	tests := []struct {
 		name     string
@@ -129,9 +127,9 @@ func TestConfig_Scans(t *testing.T) {
 				Raw:       tt.fields.Raw,
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
 			}
+			c.zips = tt.fields.zips
+			c.cmmts = tt.fields.cmmts
 			if err := c.WalkDir(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -171,9 +169,9 @@ func TestConfig_separator(t *testing.T) {
 				Raw:       tt.fields.Raw,
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
 			}
+			c.zips = tt.fields.zips
+			c.cmmts = tt.fields.cmmts
 			if got := strings.TrimSpace(c.separator(tt.fname)); got != tt.want {
 				t.Errorf("Config.separator() = %v, want %v", got, tt.want)
 			}
@@ -213,10 +211,10 @@ func TestConfig_Status(t *testing.T) {
 				Raw:       tt.fields.Raw,
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
-				test:      true,
-				zips:      tt.fields.zips,
-				cmmts:     tt.fields.cmmts,
 			}
+			c.zips = tt.fields.zips
+			c.cmmts = tt.fields.cmmts
+			c.SetTest()
 			if got := strings.TrimSpace(c.Status()); got != tt.want {
 				t.Errorf("Config.Status() = \ngot:  %v,\nwant: %v", got, tt.want)
 			}

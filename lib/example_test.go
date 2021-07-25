@@ -25,9 +25,8 @@ func ExampleRead() {
 }
 
 func ExampleConfig_Status() {
-	c := Config{
-		test: true,
-	}
+	c := Config{}
+	c.SetTest()
 	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
@@ -35,8 +34,8 @@ func ExampleConfig_Status() {
 
 	c = Config{
 		Dupes: true,
-		test:  true,
 	}
+	c.SetTest()
 	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}

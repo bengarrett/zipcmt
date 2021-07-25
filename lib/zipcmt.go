@@ -22,7 +22,6 @@ import (
 )
 
 type Config struct {
-	Timer     time.Time
 	Dirs      []string
 	Save      string
 	LogName   string
@@ -35,13 +34,30 @@ type Config struct {
 	Raw       bool
 	Print     bool
 	Quiet     bool
-	test      bool
-	zips      int
-	cmmts     int
-	names     int
-	saved     int
-	exports   export
-	hashes    hash
+	internal
+}
+
+type internal struct {
+	test    bool
+	zips    int
+	cmmts   int
+	names   int
+	saved   int
+	exports export
+	hashes  hash
+	timer   time.Time
+}
+
+func (i *internal) SetTest() {
+	i.test = true
+}
+
+func (i *internal) SetTimer() {
+	i.timer = time.Now()
+}
+
+func (i *internal) Timer() time.Duration {
+	return time.Since(i.timer)
 }
 
 type (
@@ -263,7 +279,7 @@ func (c Config) Status() string {
 			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.cmmts)
 			c.WriteLog(s)
 		}
-		s := fmt.Sprintf("Scan finished, time taken: %s", time.Since(c.Timer))
+		s := fmt.Sprintf("Scan finished, time taken: %s", c.Timer())
 		c.WriteLog(s)
 	}
 	if c.Quiet {
@@ -293,7 +309,7 @@ func (c Config) Status() string {
 		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
 	if !c.test {
 		s += color.Secondary.Sprint(", taking ") +
-			color.Primary.Sprintf("%s", time.Since(c.Timer)) + "\n"
+			color.Primary.Sprintf("%s", c.Timer()) + "\n"
 	}
 	return s
 }

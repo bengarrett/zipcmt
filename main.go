@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	zipcmt "github.com/bengarrett/zipcmt/lib"
 	"github.com/gookit/color"
@@ -32,7 +31,7 @@ func main() {
 	const ellipsis = "\u2026"
 	var c zipcmt.Config
 	var noprint bool
-	c.Timer = time.Now()
+	c.SetTimer()
 	flag.BoolVar(&noprint, "noprint", false, "do not print comments to the terminal to improve the performance of the scan")
 	flag.BoolVar(&c.NoWalk, "norecursive", false, "do not recursively walk through any subdirectories while scanning for zip archives")
 	flag.BoolVar(&c.Export, "export", false, fmt.Sprintf("save the comments as text files stored alongside the zip files (%s)",
