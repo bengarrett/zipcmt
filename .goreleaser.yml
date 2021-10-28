@@ -101,3 +101,7 @@ scoop:
   # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
   # Default is false.
   skip_upload: auto
+
+changelog:
+  skip: false
+  use: git
