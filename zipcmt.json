@@ -1,12 +1,12 @@
 {
-    "version": "1.3.5",
+    "version": "1.3.6",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/bengarrett/zipcmt/releases/download/v1.3.5/zipcmt_Windows_Intel.zip",
+            "url": "https://github.com/bengarrett/zipcmt/releases/download/v1.3.6/zipcmt_Windows_Intel.zip",
             "bin": [
                 "zipcmt.exe"
             ],
-            "hash": "617b05e878973569ead4978adce2da8ccc42deb170e73b98bbba245a2ff26527"
+            "hash": "c3c681d20576ddc7e54c2f32e143fdcdd42904555bb4549b6b52147d64f522df"
         }
     },
     "homepage": "https://github.com/bengarrett/zipcmt/",
