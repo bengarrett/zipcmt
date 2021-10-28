@@ -11,7 +11,7 @@ builds:
   - id: FreeBSD
     goos: ['freebsd']
     goarch: ['amd64']
-  - id: Linux Intel
+  - id: Linux_Intel
     goos: ['linux']
     goarch: ['amd64']
   - id: macOS
@@ -20,7 +20,10 @@ builds:
   - id: Windows
     goos: ['windows']
     goarch: ['amd64']
-
+universal_binaries:
+  - id: macOS
+    name_template: "{{ .ProjectName }}"
+    replace: true
 archives:
   - id: FreeBSD
     builds: ['FreeBSD']
@@ -31,8 +34,8 @@ archives:
     replacements:
       amd64: Intel
       freebsd: FreeBSD
-  - id: Linux Intel
-    builds: ['Linux Intel']
+  - id: Linux_Intel
+    builds: ['Linux_Intel']
     format: tar.gz
     files:
     - none*
@@ -47,8 +50,6 @@ archives:
     - none*
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     replacements:
-      arm64: M-series
-      amd64: Intel
       darwin: macOS
   - id: Windows
     builds: ['Windows']
@@ -62,7 +63,7 @@ archives:
 
 nfpms:
   - id: Linux
-    builds: ['Linux Intel']
+    builds: ['Linux_Intel']
     file_name_template: "{{ .ProjectName }}"
     replacements:
       amd64: Intel
