@@ -17,11 +17,11 @@ https://user-images.githubusercontent.com/513842/120908127-a7fc4580-c6aa-11eb-8a
 
 <small>zipcmt is a standalone (portable) terminal application and doesn't require installation.</small>
 
-- [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip)
-- [macOS](https://github.com/bengarrett/zipcmt/releases/download/v1.3.6/zipcmt_macOS_all.tar.gz)
-- [FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
-)
-- [Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_Intel.tar.gz
+[Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip), 
+[macOS](https://github.com/bengarrett/zipcmt/releases/download/v1.3.6/zipcmt_macOS_all.tar.gz), 
+[FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
+), 
+[Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_Intel.tar.gz
 )
 
 ### Packages
@@ -143,3 +143,9 @@ env GOOS=openbsd GOARCH=amd64 go build
 # target and build for Linux on MIPS CPUs
 env GOOS=linux GOARCH=mips64 go build
 ```
+
+## Usages online
+
+Reddit user [Iron_Slug](https://www.reddit.com/user/Iron_Slug/) in [r/bbs](https://www.reddit.com/r/bbs/) created a [huge online collection of BBS ads](https://www.ipingthereforeiam.com/bbs/gallery/zip/), many of which were captured using zipcmt.
+
+The website Defacto2 has [a large collection of uncurated BBS ads](https://defacto2.net/f/b428b6e) also captured using zipcmt.
