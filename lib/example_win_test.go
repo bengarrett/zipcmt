@@ -1,4 +1,6 @@
+//go:build windows
 // +build windows
+
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
 package zipcmt
@@ -10,12 +12,12 @@ import (
 
 func ExampleConfig_clean() {
 	c := Config{
-		Save: "..//test///.",
+		SaveName: "..//test///.",
 	}
 	if err := c.clean(); err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Print(c.Save)
+	fmt.Print(c.SaveName)
 	// Output: ..\test
 }
 
