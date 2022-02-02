@@ -12,13 +12,14 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/bengarrett/zipcmt/internal/misc"
 	zipcmt "github.com/bengarrett/zipcmt/lib"
 	"github.com/gookit/color"
 )
 
 var (
 	//go:embed embed/logo.txt
-	brand string // nolint: gochecknoglobals
+	brand string
 
 	version = "0.0.0"
 	commit  = "unset" // nolint: gochecknoglobals
@@ -44,37 +45,37 @@ func main() {
 	flag.BoolVar(&c.Raw, "raw", false, "use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
 	flag.StringVar(&c.SaveName, "save", "", "save the comments to uniquely named textfiles in this directory")
 	ver := flag.Bool("version", false, "version and information for this program")
-	a := flag.Bool("a", false, "alias for all")
-	o := flag.Bool("o", false, "alias for overwrite")
-	q := flag.Bool("q", false, "alias for quiet")
-	r := flag.Bool("r", false, "alias for norecursive")
-	s := flag.String("s", "", "alias for save")
-	u := flag.Bool("p", false, "alias for noprint")
-	v := flag.Bool("v", false, "alias for version")
+	aliasA := flag.Bool("a", false, "alias for all")
+	aliasO := flag.Bool("o", false, "alias for overwrite")
+	aliasQ := flag.Bool("q", false, "alias for quiet")
+	aliasR := flag.Bool("r", false, "alias for norecursive")
+	aliasS := flag.String("s", "", "alias for save")
+	aliasU := flag.Bool("p", false, "alias for noprint")
+	aliasV := flag.Bool("v", false, "alias for version")
 	flag.Usage = func() {
 		help(true)
 	}
 	flag.Parse()
-	flags(ver, v)
+	flags(ver, aliasV)
 	// parse aliases
-	if *r {
+	if *aliasR {
 		c.NoWalk = true
 	}
-	if *u || noprint {
+	if *aliasU || noprint {
 		c.Print = false
 	} else {
 		c.Print = true
 	}
-	if *s != "" {
-		c.SaveName = *s
+	if *aliasS != "" {
+		c.SaveName = *aliasS
 	}
-	if *o {
+	if *aliasO {
 		c.Overwrite = true
 	}
-	if *q {
+	if *aliasQ {
 		c.Quiet = true
 	}
-	if *a {
+	if *aliasA {
 		c.Dupes = true
 	}
 	// directories to scan
@@ -88,7 +89,7 @@ func main() {
 	}
 }
 
-func flags(ver, v *bool) {
+func flags(ver, aliasV *bool) {
 	// convenience for when a help or version flag is passed as an argument
 	for _, arg := range flag.Args() {
 		switch strings.ToLower(arg) {
@@ -101,7 +102,7 @@ func flags(ver, v *bool) {
 		}
 	}
 	// print version information
-	if *ver || *v {
+	if *ver || *aliasV {
 		info()
 		os.Exit(0)
 	}
@@ -157,7 +158,8 @@ func help(logo bool) {
 	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Options:")
-	w := tabwriter.NewWriter(os.Stderr, 0, 0, 4, ' ', 0)
+	const padding = 4
+	w := tabwriter.NewWriter(os.Stderr, 0, 0, padding, ' ', 0)
 	f = flag.Lookup("save")
 	fmt.Fprintf(w, "    -%v, -%v=DIRECTORY\t%v\n", "s", f.Name, f.Usage)
 	f = flag.Lookup("overwrite")
@@ -200,21 +202,13 @@ func optimial(w *tabwriter.Writer) {
 func info() {
 	const copyright = "\u00A9"
 	fmt.Println(brand)
-	fmt.Printf("zipcmt v%s\n%s 2021 Ben Garrett, logo by sensenstahl\n", version, copyright)
+	fmt.Printf("zipcmt v%s\n%s 2021-22 Ben Garrett, logo by sensenstahl\n", version, copyright)
 	fmt.Printf("https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Printf("build: %s (%s)\n", commit, date)
-	exe, err := self()
+	exe, err := misc.Self()
 	if err != nil {
 		fmt.Printf("path: %s\n", err)
 		return
 	}
 	fmt.Printf("path: %s\n", exe)
-}
-
-func self() (string, error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", fmt.Errorf("self error: %w", err)
-	}
-	return exe, nil
 }

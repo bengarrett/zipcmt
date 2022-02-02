@@ -11,12 +11,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bengarrett/retrotxtgo/lib/convert"
+	"github.com/bengarrett/zipcmt/internal/misc"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 )
@@ -33,17 +32,17 @@ type Config struct {
 	Raw       bool
 	Print     bool
 	Quiet     bool
+	Zips      int
+	Cmmts     int
 	internal
 }
 
 type internal struct {
 	test    bool
 	log     string
-	zips    int
-	cmmts   int
 	names   int
 	saved   int
-	exports export
+	exports misc.Export
 	hashes  hash
 	timer   time.Time
 }
@@ -74,9 +73,8 @@ func (i *internal) Timer() time.Duration {
 }
 
 type (
-	export map[string]bool
-	hash   map[[32]byte]bool
-	save   struct {
+	hash map[[32]byte]bool
+	save struct {
 		name string
 		src  string
 		cmmt string
@@ -84,8 +82,6 @@ type (
 		ow   bool
 	}
 )
-
-const filename = "-zipcomment.txt"
 
 var (
 	ErrIsFile  = errors.New("directory is a file")
@@ -127,7 +123,7 @@ func Read(name string, raw bool) (cmmt string, err error) {
 func (c *Config) WalkDirs() {
 	c.init()
 	// sanitize the export directory
-	if err := c.clean(); err != nil {
+	if err := c.Clean(); err != nil {
 		c.Error(err)
 	}
 	// walk through the directories provided
@@ -149,16 +145,16 @@ func (c *Config) WalkDir(root string) error {
 			return err
 		}
 		// skip directories and non-zip files
-		if d.IsDir() || !valid(d.Name()) {
+		if d.IsDir() || !misc.Valid(d.Name()) {
 			return nil
 		}
 		// skip sub-directories
 		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
 			return nil
 		}
-		c.zips++
+		c.Zips++
 		if !c.test && !c.Print && !c.Quiet {
-			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.zips))
+			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.Zips))
 		}
 		// read zip file comment
 		cmmt, err := Read(path, c.Raw)
@@ -177,9 +173,9 @@ func (c *Config) WalkDir(root string) error {
 			}
 			c.hashes[hash] = true
 		}
-		c.cmmts++
+		c.Cmmts++
 		// print the comment
-		fmt.Print(c.separator(path))
+		fmt.Print(c.Separator(path))
 		if c.Print {
 			stdout(cmmt)
 		}
@@ -191,14 +187,14 @@ func (c *Config) WalkDir(root string) error {
 			ow:   c.Overwrite,
 		}
 		if c.Export {
-			dat.name = exportName(path)
+			dat.name = misc.ExportName(path)
 			if c.save(dat) {
 				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
 				c.saved++
 			}
 		}
 		if c.SaveName != "" {
-			dat.name = c.exports.unique(path, c.SaveName)
+			dat.name = c.exports.Unique(path, c.SaveName)
 			c.names += len(dat.name)
 			if c.save(dat) {
 				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
@@ -210,8 +206,8 @@ func (c *Config) WalkDir(root string) error {
 	return err
 }
 
-// clean the syntax of the target export directory path.
-func (c *Config) clean() error {
+// Clean the syntax of the target export directory path.
+func (c *Config) Clean() error {
 	if name := c.SaveName; name != "" {
 		name = filepath.Clean(name)
 		p := strings.Split(name, string(filepath.Separator))
@@ -246,7 +242,7 @@ func (c *Config) clean() error {
 // init initialise the Config maps.
 func (c *Config) init() {
 	if c.exports == nil {
-		c.exports = make(export)
+		c.exports = make(misc.Export)
 	}
 	if c.hashes == nil {
 		c.hashes = make(hash)
@@ -267,8 +263,8 @@ func (c *Config) lastMod(file fs.DirEntry) time.Time {
 	return i.ModTime()
 }
 
-// separator prints and stylises the named file.
-func (c Config) separator(name string) string {
+// Separator prints and stylises the named file.
+func (c *Config) Separator(name string) string {
 	if !c.Print || c.Quiet {
 		return ""
 	}
@@ -290,7 +286,7 @@ func (c Config) separator(name string) string {
 func (c Config) Status() string {
 	if c.Log {
 		if c.SaveName != "" {
-			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.cmmts)
+			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.Cmmts)
 			c.WriteLog(s)
 		}
 		s := fmt.Sprintf("Scan finished, time taken: %s", c.Timer())
@@ -300,10 +296,10 @@ func (c Config) Status() string {
 		return ""
 	}
 	a, cm, unq := "archive", "comment", ""
-	if c.zips != 1 {
+	if c.Zips != 1 {
 		a += "s"
 	}
-	if c.cmmts != 1 {
+	if c.Cmmts != 1 {
 		cm += "s"
 	}
 	if !c.Dupes {
@@ -314,13 +310,13 @@ func (c Config) Status() string {
 		s = "\r"
 	}
 	s += color.Secondary.Sprint("Scanned ") +
-		color.Primary.Sprintf("%d zip %s", c.zips, a)
-	if c.SaveName != "" && c.saved != c.cmmts {
+		color.Primary.Sprintf("%d zip %s", c.Zips, a)
+	if c.SaveName != "" && c.saved != c.Cmmts {
 		s += color.Secondary.Sprint(", saved ") +
 			color.Primary.Sprintf("%d text files", c.saved)
 	}
 	s += color.Secondary.Sprint(" and found ") +
-		color.Primary.Sprintf("%d %s%s", c.cmmts, unq, cm)
+		color.Primary.Sprintf("%d %s%s", c.Cmmts, unq, cm)
 	if !c.test {
 		s += color.Secondary.Sprint(", taking ") +
 			color.Primary.Sprintf("%s", c.Timer()) + "\n"
@@ -365,72 +361,8 @@ func (c *Config) save(dat save) bool {
 	return true
 }
 
-// exportName returns a text file file path for the Export config.
-func exportName(path string) string {
-	if path == "" {
-		return ""
-	}
-	return strings.TrimSuffix(path, filepath.Ext(path)) + filename
-}
-
 // stdout prints the cmmt with an ANSI reset command.
 func stdout(cmmt string) {
 	const resetCmd = "\033[0m"
 	fmt.Printf("%s%s\n", cmmt, resetCmd)
-}
-
-// valid checks that the named file is a known zip archive.
-func valid(name string) bool {
-	const z = ".zip"
-	return filepath.Ext(strings.ToLower(name)) == z
-}
-
-// unique checks the destination path against an export map.
-// The map contains a unique collection of previously used destination
-// paths, to avoid creating duplicate text filenames while using the
-// SaveName config.
-func (e export) unique(zipPath, dest string) string {
-	base := filepath.Base(zipPath)
-	name := strings.TrimSuffix(base, filepath.Ext(base)) + filename
-	if runtime.GOOS == "windows" {
-		name = strings.ToLower(name)
-	}
-	path := filepath.Join(dest, name)
-	if f := e.find(path); f != path {
-		path = f
-	}
-	e[path] = true
-	return path
-}
-
-// find searches for the name in the export map.
-// If no matches exist, the name is unique and returned.
-// Otherwise find attempts to append a `_1` suffix to the
-// name. If the name already has this suffix, the digit
-// is incrementally increased until a unique name is returned.
-func (e export) find(name string) string {
-	if !e[name] {
-		return name
-	}
-	i, new := 0, ""
-	for {
-		i++
-		ext := filepath.Ext(name)
-		base := strings.TrimSuffix(name, ext)
-		a := strings.Split(base, "_")
-		n, err := strconv.Atoi(a[len(a)-1])
-		if err == nil {
-			i = n
-			base = strings.Join(a[0:len(a)-1], "_")
-		}
-		suf := fmt.Sprintf("_%d", i+1)
-		new = fmt.Sprintf("%s%s%s", base, suf, ext)
-		if !e[new] {
-			return new
-		}
-		if i > 9999 {
-			break
-		}
-	}
-	return ""
 }

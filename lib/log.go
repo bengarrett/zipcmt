@@ -55,7 +55,7 @@ func (c *Config) WriteLog(s string) {
 	if st.Size() == 0 {
 		c.logHeader(logger)
 	}
-	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.zips, c.cmmts)
+	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.Zips, c.Cmmts)
 	if !c.Dupes {
 		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*32)))
 	}

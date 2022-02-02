@@ -1,12 +1,13 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-package zipcmt
+package zipcmt_test
 
 import (
 	"os"
 	"strings"
 	"testing"
 
+	zipcmt "github.com/bengarrett/zipcmt/lib"
 	"github.com/gookit/color"
 )
 
@@ -35,7 +36,7 @@ func TestConfig_Clean(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
+			c := &zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -44,10 +45,10 @@ func TestConfig_Clean(t *testing.T) {
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
 			}
-			c.zips = tt.fields.zips
-			c.cmmts = tt.fields.cmmts
-			if err := c.clean(); (err != nil) != tt.wantErr {
-				t.Errorf("Config.cean() error = %v, wantErr %v", err, tt.wantErr)
+			c.Zips = tt.fields.zips
+			c.Cmmts = tt.fields.cmmts
+			if err := c.Clean(); (err != nil) != tt.wantErr {
+				t.Errorf("Config.Clean() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -77,7 +78,7 @@ func Test_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotCmmt, err := Read(tt.fname, tt.fields.Raw)
+			gotCmmt, err := zipcmt.Read(tt.fname, tt.fields.Raw)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -119,7 +120,7 @@ func TestConfig_Scans(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
+			c := &zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -128,8 +129,8 @@ func TestConfig_Scans(t *testing.T) {
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
 			}
-			c.zips = tt.fields.zips
-			c.cmmts = tt.fields.cmmts
+			c.Zips = tt.fields.zips
+			c.Cmmts = tt.fields.cmmts
 			if err := c.WalkDir(tt.root); (err != nil) != tt.wantErr {
 				t.Errorf("Config.Scans() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -161,7 +162,7 @@ func TestConfig_separator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := Config{
+			c := zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -170,10 +171,10 @@ func TestConfig_separator(t *testing.T) {
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
 			}
-			c.zips = tt.fields.zips
-			c.cmmts = tt.fields.cmmts
-			if got := strings.TrimSpace(c.separator(tt.fname)); got != tt.want {
-				t.Errorf("Config.separator() = %v, want %v", got, tt.want)
+			c.Zips = tt.fields.zips
+			c.Cmmts = tt.fields.cmmts
+			if got := strings.TrimSpace(c.Separator(tt.fname)); got != tt.want {
+				t.Errorf("Config.Separator() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -203,7 +204,7 @@ func TestConfig_Status(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := Config{
+			c := zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -212,80 +213,11 @@ func TestConfig_Status(t *testing.T) {
 				Print:     tt.fields.Print,
 				Quiet:     tt.fields.Quiet,
 			}
-			c.zips = tt.fields.zips
-			c.cmmts = tt.fields.cmmts
+			c.Zips = tt.fields.zips
+			c.Cmmts = tt.fields.cmmts
 			c.SetTest()
 			if got := strings.TrimSpace(c.Status()); got != tt.want {
 				t.Errorf("Config.Status() = \ngot:  %v,\nwant: %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_valid(t *testing.T) {
-	tests := []struct {
-		name  string
-		fname string
-		want  bool
-	}{
-		{"empty", "", false},
-		{"dir", "/somedir/", false},
-		{"file", "/somedir/somefile.txt", false},
-		{"zip", "somedir/somefile.zip", true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := valid(tt.fname); got != tt.want {
-				t.Errorf("valid() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_export_find(t *testing.T) {
-	files := export{
-		"file.txt":   true,
-		"file_1.txt": true,
-		"file_2.txt": true,
-		"file_3.txt": true,
-	}
-	tests := []struct {
-		name  string
-		e     export
-		fname string
-		want  string
-	}{
-		{"none", files, "", ""},
-		{"unique", files, "somefile.txt", "somefile.txt"},
-		{"conflict", files, "file.txt", "file_4.txt"},
-		{"conflict 3", files, "file_3.txt", "file_4.txt"},
-		{"conflict 4", files, "file_4.txt", "file_4.txt"},
-		{"underscores", files, "file_000_1.txt", "file_000_1.txt"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.e.find(tt.fname); got != tt.want {
-				t.Errorf("export.unique() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_exportName(t *testing.T) {
-	tests := []struct {
-		name string
-		path string
-		want string
-	}{
-		{"empty", "", ""},
-		{"name", "myfile.zip", "myfile-zipcomment.txt"},
-		{"windows", "C:\\Users\\retro\\myfile.zip", "C:\\Users\\retro\\myfile-zipcomment.txt"},
-		{"*nix", "/home/retro/myfile.zip", "/home/retro/myfile-zipcomment.txt"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := exportName(tt.path); got != tt.want {
-				t.Errorf("exportName() = %v, want %v", got, tt.want)
 			}
 		})
 	}
