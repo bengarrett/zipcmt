@@ -40,10 +40,10 @@ type Config struct {
 type internal struct {
 	test    bool
 	log     string
-	names   int
-	saved   int
-	exports misc.Export
-	hashes  hash
+	names   int         // nolint: structcheck
+	saved   int         // nolint: structcheck
+	exports misc.Export // nolint: structcheck
+	hashes  hash        // nolint: structcheck
 	timer   time.Time
 }
 
@@ -94,29 +94,30 @@ var (
 // Read the named zip file and return the zip comment.
 // The Raw config will return the comment in its original legacy encoding.
 // Otherwise the comment is returned as Unicode text.
-func Read(name string, raw bool) (cmmt string, err error) {
+func Read(name string, raw bool) (string, error) {
 	r, err := zip.OpenReader(name)
 	if err != nil {
-		return "", nil
+		return "", nil // nolint: nilerr
 	}
 	defer r.Close()
-	if cmmt := r.Comment; cmmt != "" {
-		if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
-			return "", nil
-		}
-		if strings.TrimSpace(cmmt) == "" {
-			return "", nil
-		}
-		if !raw {
-			b, err := convert.D437(cmmt)
-			if err != nil {
-				return "", err
-			}
-			cmmt = string(b)
-		}
-		return cmmt, nil
+	cmmt := r.Comment
+	if cmmt == "" {
+		return "", nil
 	}
-	return "", nil
+	if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
+		return "", nil
+	}
+	if strings.TrimSpace(cmmt) == "" {
+		return "", nil
+	}
+	if !raw {
+		b, err := convert.D437(cmmt)
+		if err != nil {
+			return "", fmt.Errorf("codepage 437 decoder: %w", err)
+		}
+		cmmt = string(b)
+	}
+	return cmmt, nil
 }
 
 // WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
@@ -135,7 +136,7 @@ func (c *Config) WalkDirs() {
 }
 
 // WalkDir walks the root directory for zip archives and to extract any found comments.
-func (c *Config) WalkDir(root string) error {
+func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 	c.init()
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -203,39 +204,44 @@ func (c *Config) WalkDir(root string) error {
 		}
 		return err
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("walk directory: %s, %w", root, err)
+	}
+	return nil
 }
 
 // Clean the syntax of the target export directory path.
 func (c *Config) Clean() error {
-	if name := c.SaveName; name != "" {
-		name = filepath.Clean(name)
-		p := strings.Split(name, string(filepath.Separator))
-		if p[0] == "~" {
-			hd, err := os.UserHomeDir()
-			if err != nil {
-				return err
-			}
-			name = strings.Replace(name, "~", hd, 1)
-		}
-		s, err := os.Stat(name)
-		if errors.Is(err, fs.ErrInvalid) {
-			return fmt.Errorf("%s: export %w", name, ErrValid)
-		}
-		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("%s: export %w", name, ErrMissing)
-		}
-		if errors.Is(err, fs.ErrPermission) {
-			return fmt.Errorf("%s: export %w", name, ErrPerm)
-		}
+	name := c.SaveName
+	if name == "" {
+		return nil
+	}
+	name = filepath.Clean(name)
+	p := strings.Split(name, string(filepath.Separator))
+	if p[0] == "~" {
+		hd, err := os.UserHomeDir()
 		if err != nil {
 			return fmt.Errorf("%s: export %w", name, err)
 		}
-		if !s.IsDir() {
-			return fmt.Errorf("%s: export %w", name, ErrIsFile)
-		}
-		c.SaveName = name
+		name = strings.Replace(name, "~", hd, 1)
 	}
+	s, err := os.Stat(name)
+	if errors.Is(err, fs.ErrInvalid) {
+		return fmt.Errorf("%s: export %w", name, ErrValid)
+	}
+	if errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("%s: export %w", name, ErrMissing)
+	}
+	if errors.Is(err, fs.ErrPermission) {
+		return fmt.Errorf("%s: export %w", name, ErrPerm)
+	}
+	if err != nil {
+		return fmt.Errorf("%s: export %w", name, err)
+	}
+	if !s.IsDir() {
+		return fmt.Errorf("%s: export %w", name, ErrIsFile)
+	}
+	c.SaveName = name
 	return nil
 }
 
@@ -251,7 +257,7 @@ func (c *Config) init() {
 
 // lastMod preserves the zip files last modification date.
 func (c *Config) lastMod(file fs.DirEntry) time.Time {
-	zero := time.Date(0001, 1, 1, 00, 00, 00, 00, time.UTC)
+	zero := time.Date(0o001, 1, 1, 0o0, 0o0, 0o0, 0o0, time.UTC)
 	if c.Now {
 		return zero
 	}
@@ -346,7 +352,11 @@ func (c *Config) save(dat save) bool {
 	}
 	defer f.Close()
 	if !dat.mod.IsZero() {
-		defer os.Chtimes(dat.name, time.Now(), dat.mod)
+		defer func() {
+			if err := os.Chtimes(dat.name, time.Now(), dat.mod); err != nil {
+				c.Error(fmt.Errorf("%s: %w", dat.name, err))
+			}
+		}()
 	}
 	if dat.cmmt[len(dat.cmmt)-1:] != "\n" {
 		dat.cmmt += "\n"

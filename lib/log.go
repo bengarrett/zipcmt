@@ -37,27 +37,33 @@ func (c *Config) WriteLog(s string) {
 		d := filepath.Dir(c.LogName())
 		_, err := os.Stat(d)
 		if os.IsNotExist(err) {
-			os.MkdirAll(d, 0755)
+			const perm = 0o755
+			if err := os.MkdirAll(d, perm); err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 
-	f, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	const perm = 0o644
+	f, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
 	if err1 != nil {
 		log.Fatalln(err1)
 	}
-	defer f.Close()
 
 	logger := log.New(f, "zipcmt|", log.LstdFlags)
 	st, err2 := f.Stat()
 	if err2 != nil {
+		f.Close()
 		log.Fatalln(err2)
 	}
+	defer f.Close()
 	if st.Size() == 0 {
 		c.logHeader(logger)
 	}
 	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.Zips, c.Cmmts)
 	if !c.Dupes {
-		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*32)))
+		const hashLen = 32
+		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*hashLen)))
 	}
 	if c.SaveName != "" {
 		l += fmt.Sprintf("names: %s; ", humanize.Bytes(uint64(c.names)))
@@ -69,12 +75,14 @@ func (c *Config) WriteLog(s string) {
 // logHeader creates a header for new log files that lists all the values of Config.
 func (c *Config) logHeader(logger *log.Logger) {
 	w := new(tabwriter.Writer)
-	w.Init(logger.Writer(), 0, 8, 0, '\t', 0)
+	const tabWidth = 8
+	w.Init(logger.Writer(), 0, tabWidth, 0, '\t', 0)
 	fmt.Fprintln(w, "Zip Comment Log - Configurations and arguments")
 	fmt.Fprintln(w, "")
 	// see: https://scene-si.org/2017/12/21/introduction-to-reflection/
 	v := reflect.ValueOf(c).Elem()
 	t := v.Type()
+
 	for i := 0; i < v.NumField(); i++ {
 		fmt.Fprintf(w, "%02d. %s:\t\t%v\n", i+1, t.Field(i).Name, v.Field(i))
 		if t.Field(i).Name == "test" {

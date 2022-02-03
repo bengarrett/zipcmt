@@ -3,7 +3,7 @@
 
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-package zipcmt
+package zipcmt_test
 
 import (
 	"fmt"
@@ -11,10 +11,10 @@ import (
 )
 
 func ExampleConfig_clean() {
-	c := Config{
+	c := zipcmt.Config{
 		SaveName: "..//test///.",
 	}
-	if err := c.clean(); err != nil {
+	if err := c.Clean(); err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Print(c.SaveName)
@@ -22,7 +22,7 @@ func ExampleConfig_clean() {
 }
 
 func ExampleConfig_WalkDir() {
-	c := Config{
+	c := zipcmt.Config{
 		Print: true,
 		Dupes: true,
 	}

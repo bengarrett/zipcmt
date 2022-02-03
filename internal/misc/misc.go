@@ -42,7 +42,8 @@ func (e Export) Find(name string) string {
 	if !e[name] {
 		return name
 	}
-	i, new := 0, ""
+	i := 0
+	const maximum = 9999
 	for {
 		i++
 		ext := filepath.Ext(name)
@@ -54,11 +55,11 @@ func (e Export) Find(name string) string {
 			base = strings.Join(a[0:len(a)-1], "_")
 		}
 		suf := fmt.Sprintf("_%d", i+1)
-		new = fmt.Sprintf("%s%s%s", base, suf, ext)
-		if !e[new] {
-			return new
+		s := fmt.Sprintf("%s%s%s", base, suf, ext)
+		if !e[s] {
+			return s
 		}
-		if i > 9999 {
+		if i > maximum {
 			break
 		}
 	}
