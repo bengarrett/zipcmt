@@ -18,7 +18,7 @@ https://user-images.githubusercontent.com/513842/120908127-a7fc4580-c6aa-11eb-8a
 <small>zipcmt is a standalone (portable) terminal application and doesn't require installation.</small>
 
 [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip), 
-[macOS](https://github.com/bengarrett/zipcmt/releases/download/v1.3.6/zipcmt_macOS_all.tar.gz), 
+[macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS_all.tar.gz), 
 [FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
 ), 
 [Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_Intel.tar.gz
