@@ -204,8 +204,19 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 		}
 		return err
 	})
+	return walkErrs(root, err)
+}
+
+func walkErrs(root string, err error) error {
+	var pathError *os.PathError
+	if errors.As(err, &pathError) {
+		if root != "" && root[:1] == "-" {
+			return fmt.Errorf("detected an options flag, "+
+				"all the directories to scan must be listed after any option flags: %s", root)
+		}
+	}
 	if err != nil {
-		return fmt.Errorf("walk directory: %s, %w", root, err)
+		return fmt.Errorf("walk directory: %s, %w %T", root, err, err)
 	}
 	return nil
 }

@@ -8,6 +8,8 @@ package zipcmt_test
 import (
 	"fmt"
 	"log"
+
+	zipcmt "github.com/bengarrett/zipcmt/lib"
 )
 
 func ExampleConfig_clean() {
