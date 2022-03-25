@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	zipcmt "github.com/bengarrett/zipcmt/lib"
+	zipcmt "github.com/bengarrett/zipcmt/pkg"
 	"github.com/gookit/color"
 )
 

@@ -1,5 +1,4 @@
-//go:build !windows
-// +build !windows
+//go:build windows
 
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
@@ -9,10 +8,10 @@ import (
 	"fmt"
 	"log"
 
-	zipcmt "github.com/bengarrett/zipcmt/lib"
+	zipcmt "github.com/bengarrett/zipcmt/pkg"
 )
 
-func ExampleConfig_Clean() {
+func ExampleConfig_clean() {
 	c := zipcmt.Config{
 		SaveName: "..//test///.",
 	}
@@ -20,7 +19,7 @@ func ExampleConfig_Clean() {
 		log.Fatalln(err)
 	}
 	fmt.Print(c.SaveName)
-	// Output: ../test
+	// Output: ..\test
 }
 
 func ExampleConfig_WalkDir() {
@@ -32,9 +31,9 @@ func ExampleConfig_WalkDir() {
 		log.Panicln(err)
 	}
 	// Output:
-	// ── ../test/subdir/test-with-comment.zip ─┐
+	// ── ..\test\subdir\test-with-comment.zip ─┐
 	//    This is an example test comment for zipcmmt.[0m
 	//
-	//  ── ../test/test-with-comment.zip ────────┐
+	//  ── ..\test\test-with-comment.zip ────────┐
 	//    This is an example test comment for zipcmmt.[0m
 }
