@@ -228,8 +228,8 @@ func (c *Config) Clean() error {
 		return nil
 	}
 	name = filepath.Clean(name)
-	p := strings.Split(name, string(filepath.Separator))
-	if p[0] == "~" {
+	before, _, _ := strings.Cut(name, string(filepath.Separator))
+	if before == "~" {
 		hd, err := os.UserHomeDir()
 		if err != nil {
 			return fmt.Errorf("%s: export %w", name, err)
