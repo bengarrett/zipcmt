@@ -33,9 +33,6 @@ func ExampleConfig() {
 		SaveName: homeDir,
 		Quiet:    true,
 	}
-	if err := b.Clean(); err != nil {
-		log.Fatalln(err)
-	}
 	b.WalkDirs()
 	if s := b.Status(); s != "" {
 		fmt.Println(s)
