@@ -13,6 +13,43 @@ func init() { // nolint:gochecknoinits
 	color.Enable = false
 }
 
+func ExampleConfig() {
+	// print all comments found in the test directory
+	example := []string{"../test"}
+	a := zipcmt.Config{
+		Dirs:  example,
+		Dupes: true,
+		Print: true,
+	}
+	a.WalkDirs()
+	if s := a.Status(); s != "" {
+		fmt.Println(s)
+	}
+
+	// quietly scan and save only the unique comments as text files in the home directory
+	const homeDir = "~"
+	b := zipcmt.Config{
+		Dirs:     example,
+		SaveName: homeDir,
+		Quiet:    true,
+	}
+	if err := b.Clean(); err != nil {
+		log.Fatalln(err)
+	}
+	b.WalkDirs()
+	if s := b.Status(); s != "" {
+		fmt.Println(s)
+	}
+
+	// quietly scan and count the unique comments
+	c := zipcmt.Config{
+		Dirs:  example,
+		Quiet: true,
+	}
+	c.WalkDirs()
+	fmt.Printf("Scanned %d zip archives and found %d unique comments\n", c.Zips, c.Cmmts)
+}
+
 func ExampleRead() {
 	s, err := zipcmt.Read("../test/test-with-comment.zip", false)
 	if err != nil {

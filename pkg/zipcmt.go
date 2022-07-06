@@ -20,20 +20,21 @@ import (
 	"github.com/gookit/color"
 )
 
+// Config zipcmt to walk one or more directories.
 type Config struct {
-	Dirs      []string
-	SaveName  string
-	Dupes     bool
-	Export    bool
-	Log       bool
-	Overwrite bool
-	Now       bool
-	NoWalk    bool
-	Raw       bool
-	Print     bool
-	Quiet     bool
-	Zips      int
-	Cmmts     int
+	Dirs      []string // Dirs are the directory paths to walk.
+	SaveName  string   // SaveName is an optional directory path to save any found comments as uniquely named text files.
+	Dupes     bool     // Dupes shows all comments, including duplicates found in multiple zips.
+	Export    bool     // Export the comments as text files stored alongside the source zip files.
+	Log       bool     // Log creates a logfile for debugging.
+	Overwrite bool     // Overwrite any previously exported comment text files.
+	Now       bool     // Now ignores the zip files last modification date, which is otherwise applied to the comment text file.
+	NoWalk    bool     // NoWalk ignores all subdirectories while scanning for zip archives.
+	Raw       bool     // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
+	Print     bool     // Print found comments to stdout.
+	Quiet     bool     // Quiet suppresses the scan activity feedback to stdout.
+	Zips      int      // Zips is the number of zip files scanned.
+	Cmmts     int      // Cmmts are the number of zip comments found.
 	internal
 }
 
@@ -239,7 +240,7 @@ func walkErrs(root string, err error) error {
 	return nil
 }
 
-// Clean the syntax of the target export directory path.
+// Clean the syntax and check the usability of the SaveName directory path.
 func (c *Config) Clean() error {
 	name := c.SaveName
 	if name == "" {
