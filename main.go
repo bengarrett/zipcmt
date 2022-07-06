@@ -176,6 +176,9 @@ func help(logo bool) {
 	if logo {
 		fmt.Fprintln(os.Stderr, brand)
 	}
+	fmt.Fprint(os.Stderr, " Zip Comment is the super-fast batch, zip file comment viewer, and extractor.\n"+
+		" Using a modern PC with the zip files stored on a solid-state drive,\n"+
+		" zipcmt handles many thousands of archives per second.\n\n")
 	fmt.Fprintln(os.Stderr, "Usage:")
 	if runtime.GOOS == winOS {
 		helpWin()
