@@ -84,12 +84,13 @@ type (
 )
 
 var (
-	ErrFlag    = errors.New("directories to scan must be listed after any option flags")
-	ErrIsFile  = errors.New("directory is a file")
-	ErrMissing = errors.New("directory cannot be found")
-	ErrPath    = errors.New("directory path cannot be found or points to a file")
-	ErrPerm    = errors.New("directory access is blocked due to its permissions")
-	ErrValid   = errors.New("the operating system reports this directory is invalid")
+	ErrFlag     = errors.New("this option is used after a directory, it must be placed before any directories are listed")
+	ErrDirExist = errors.New("directory does not exist")
+	ErrIsFile   = errors.New("directory is a file")
+	ErrMissing  = errors.New("directory cannot be found")
+	ErrPath     = errors.New("directory path cannot be found or points to a file")
+	ErrPerm     = errors.New("directory access is blocked due to its permissions")
+	ErrValid    = errors.New("the operating system reports this directory is invalid")
 )
 
 // Read the named zip file and return the zip comment.
@@ -142,7 +143,11 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
-				return nil
+				// skip permission errors for subdirectories
+				// but return an error if the root is inaccessible
+				if root != path {
+					return nil
+				}
 			}
 			return err
 		}
@@ -156,7 +161,8 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 		}
 		c.Zips++
 		if !c.test && !c.Print && !c.Quiet {
-			fmt.Print("\r", color.Secondary.Sprint("Scanned "), color.Primary.Sprintf("%d zip archives", c.Zips))
+			fmt.Print("\r", color.Secondary.Sprint("Scanned "),
+				color.Primary.Sprintf("%d zip archives", c.Zips))
 		}
 		// read zip file comment
 		cmmt, err := Read(path, c.Raw)
@@ -200,7 +206,8 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 			dat.name = c.exports.Unique(path, c.SaveName)
 			c.names += len(dat.name)
 			if c.save(dat) {
-				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s", dat.name, humanize.Bytes(uint64(len(cmmt))), path))
+				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
+					dat.name, humanize.Bytes(uint64(len(cmmt))), path))
 				c.saved++
 			}
 		}
@@ -213,8 +220,18 @@ func walkErrs(root string, err error) error {
 	var pathError *os.PathError
 	if errors.As(err, &pathError) {
 		if root != "" && root[:1] == "-" {
-			return fmt.Errorf("detected an options flag, %w: %s", ErrFlag, root)
+			return fmt.Errorf("%w: %s", ErrFlag, root)
 		}
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("%w: %s", ErrDirExist, root)
+	}
+	if errors.Is(err, fs.ErrPermission) {
+		f, err := os.Stat(root)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrPerm, root)
+		}
+		return fmt.Errorf("%w: %s, %s", ErrPerm, f.Mode(), root)
 	}
 	if err != nil {
 		return fmt.Errorf("walk directory: %s, %w %T", root, err, err)

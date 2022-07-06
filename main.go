@@ -67,7 +67,7 @@ func main() { // nolint: funlen
 		help(true)
 	}
 	flag.Parse()
-	flags(ver, aliasV)
+	flags(ver, aliasV, aliasQ)
 	// parse aliases
 	if *aliasR {
 		c.NoWalk = true
@@ -100,31 +100,32 @@ func main() { // nolint: funlen
 	}
 }
 
-func flags(ver, aliasV *bool) {
+func flags(ver, aliasV, quiet *bool) {
 	// convenience for when a help or version flag is passed as an argument
 	for _, arg := range flag.Args() {
+		showLogo := !*quiet
 		switch strings.ToLower(arg) {
 		case "-h", "-help", "--help":
-			help(true)
+			help(showLogo)
 			os.Exit(0)
 		case "-v", "-version", "--version":
-			info()
+			info(quiet)
 			os.Exit(0)
 		}
 	}
 	// print version information
 	if *ver || *aliasV {
-		info()
+		info(quiet)
 		os.Exit(0)
 	}
 	// print help if no arguments are given
 	if len(flag.Args()) == 0 {
 		if runtime.GOOS == winOS {
-			color.Warn.Println("zipcmt requires at least one directory or drive letter to scan")
+			fmt.Fprintln(os.Stderr, color.Warn.Sprint("zipcmt requires at least one directory or drive letter to scan"))
 		} else {
-			color.Warn.Println("zipcmt requires at least one directory to scan")
+			fmt.Fprintln(os.Stderr, color.Warn.Sprint("zipcmt requires at least one directory to scan"))
 		}
-		fmt.Println()
+		fmt.Fprintln(os.Stderr)
 		help(false)
 		os.Exit(0)
 	}
@@ -175,10 +176,10 @@ func help(logo bool) {
 	var f *flag.Flag
 	if logo {
 		fmt.Fprintln(os.Stderr, brand)
+		fmt.Fprint(os.Stderr, " Zip Comment is the super-fast batch, zip file comment viewer, and extractor.\n"+
+			" Using a modern PC with the zip files stored on a solid-state drive,\n"+
+			" zipcmt handles many thousands of archives per second.\n\n")
 	}
-	fmt.Fprint(os.Stderr, " Zip Comment is the super-fast batch, zip file comment viewer, and extractor.\n"+
-		" Using a modern PC with the zip files stored on a solid-state drive,\n"+
-		" zipcmt handles many thousands of archives per second.\n\n")
 	fmt.Fprintln(os.Stderr, "Usage:")
 	if runtime.GOOS == winOS {
 		helpWin()
@@ -229,9 +230,11 @@ func optimial(w *tabwriter.Writer) {
 }
 
 // Info prints out the program information and version.
-func info() {
+func info(quiet *bool) {
 	const copyright = "\u00A9"
-	fmt.Println(brand)
+	if !*quiet {
+		fmt.Println(brand)
+	}
 	fmt.Printf("zipcmt v%s\n%s 2021-22 Ben Garrett, logo by sensenstahl\n", version, copyright)
 	fmt.Printf("https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Printf("build: %s (%s)\n", commit, date)

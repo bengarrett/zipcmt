@@ -15,7 +15,7 @@ type (
 
 const Filename = "-zipcomment.txt"
 
-// unique checks the destination path against an export map.
+// Unique checks the destination path against an export map.
 // The map contains a unique collection of previously used destination
 // paths, to avoid creating duplicate text filenames while using the
 // SaveName config.
