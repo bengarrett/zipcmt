@@ -1,5 +1,4 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
-
 package zipcmt_test
 
 import (

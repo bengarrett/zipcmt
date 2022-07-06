@@ -84,6 +84,7 @@ type (
 )
 
 var (
+	ErrFlag    = errors.New("directories to scan must be listed after any option flags")
 	ErrIsFile  = errors.New("directory is a file")
 	ErrMissing = errors.New("directory cannot be found")
 	ErrPath    = errors.New("directory path cannot be found or points to a file")
@@ -182,6 +183,7 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 		}
 		// save the comment to a text file
 		dat := save{
+			name: "",
 			src:  path,
 			cmmt: cmmt,
 			mod:  c.lastMod(d),
@@ -211,8 +213,7 @@ func walkErrs(root string, err error) error {
 	var pathError *os.PathError
 	if errors.As(err, &pathError) {
 		if root != "" && root[:1] == "-" {
-			return fmt.Errorf("detected an options flag, "+
-				"all the directories to scan must be listed after any option flags: %s", root)
+			return fmt.Errorf("detected an options flag, %w: %s", ErrFlag, root)
 		}
 	}
 	if err != nil {

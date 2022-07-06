@@ -8,6 +8,17 @@ linters:
     - scopelint # Deprecated
     - golint # Deprecated
     - maligned # Deprecated
+    # unsupported in Go v1.18
+    - bodyclose
+    - contextcheck
+    - nilerr
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    - structcheck
+    - tparallel
+    - unparam
+    - wastedassign
 
     - exhaustivestruct # 'It is not recommended to use it for all files in a project'
     - forbidigo # forbids the use for fmt.Print(f|ln)
@@ -20,3 +31,10 @@ linters-settings:
     max-complexity: 15 # default value 10 requires unnecessary refactoring
   varnamelen:
     min-name-length: 1 # default value 3 is too short
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - exhaustruct
