@@ -15,14 +15,18 @@ https://user-images.githubusercontent.com/513842/120908127-a7fc4580-c6aa-11eb-8a
 
 ## Downloads
 
-<small>zipcmt is a standalone (portable) terminal application and doesn't require installation.</small>
+zipcmt is a standalone (portable) terminal application and doesn't require installation.
 
 [Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip), 
-[macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS_all.tar.gz), 
+[macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS.tar.gz), 
 [FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
 ), 
-[Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_Intel.tar.gz
+[Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_amd64.tar.gz
 )
+ and [Linux for ARM](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_arm64.tar.gz
+)
+
+<small>Windows requires Windows 10 or newer, [users of Windows 7 and 8 can use zipcmt v1.3.10](https://github.com/bengarrett/zipcmt/releases/download/v1.3.10/zipcmt_Windows_Intel.zip).</small>
 
 ### Packages
 
@@ -44,11 +48,31 @@ wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm
 rpm -i zipcmt.rpm
 ```
 
-Windows [Scoop](https://scoop.sh/)
+[ZST (Arch Linux package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.tar.zst)
+```sh
+wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.tar.zst
+pacman -U zipcmt.pkg.tar.zst
+```
+
+[Windows Scoop](https://scoop.sh/)
 ```sh
 scoop bucket add zipcmt https://github.com/bengarrett/zipcmt.git
 scoop install zipcmt
 ```
+
+## macOS unverified developer
+
+Unfortunately, newer macOS versions do not permit the running of unsigned terminal applications out of the box. But there is a workaround.
+
+In System Settings, Privacy & Security, Security, toggle **Allow applications downloaded from App store and identified developers**.
+
+1. Use Finder to extract the download for macOS, `zipcmt_macOS.tar.tar.gz`
+2. Use Finder to select the extracted `zipcmt` binary.
+3. <kbd>^</kbd> control-click the binary and choose _Open_.
+4. macOS will ask if you are sure you want to open it.
+5. Confirm by choosing _Open_, which will open a terminal and run the program.
+6. After this one-time confirmation, you can run this program within the terminal.
+
 
 ## Windows Performance
 
@@ -134,7 +158,7 @@ cd zipcmt
 # target and build the app for the host system
 go build
 
-# target and build for Windows 7+ 32-bit
+# target and build for Windows 10, 32-bit
 env GOOS=windows GOARCH=386 go build
 
 # target and build for OpenBSD

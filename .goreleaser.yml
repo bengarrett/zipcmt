@@ -2,7 +2,7 @@
 #
 # test the config:
 # goreleaser check
-# goreleaser release --skip-publish --skip-validate --rm-dist
+# goreleaser release --skip=publish --skip=validate --clean
 
 before:
   hooks:
@@ -13,7 +13,10 @@ builds:
     goarch: ["amd64"]
   - id: Linux_Intel
     goos: ["linux"]
-    goarch: ["amd64"]
+    goarch: ["amd64"]  
+  - id: Linux_ARM
+    goos: ["linux"]
+    goarch: ["arm64"]
   - id: macOS
     goos: ["darwin"]
     goarch: ["amd64", "arm64"]
@@ -30,44 +33,30 @@ archives:
     format: tar.gz
     files:
       - none*
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      amd64: Intel
-      freebsd: FreeBSD
-  - id: Linux_Intel
-    builds: ["Linux_Intel"]
+    name_template: "{{ .ProjectName }}_FreeBSD_Intel"
+  - id: Linux
+    builds: ["Linux_Intel", "Linux_ARM"]
     format: tar.gz
     files:
       - none*
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      linux: Linux
+    name_template: "{{ .ProjectName }}_Linux_{{ .Arch }}"
   - id: macOS
     builds: ["macOS"]
     format: tar.gz
     files:
       - none*
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      darwin: macOS
-      amd64: Intel
+    name_template: "{{ .ProjectName }}_macOS"
   - id: Windows
     builds: ["Windows"]
     format: zip
     files:
       - none*
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      amd64: Intel
-      windows: Windows
+    name_template: "{{ .ProjectName }}_Windows_Intel"
 
 nfpms:
   - id: Linux
     builds: ["Linux_Intel"]
     file_name_template: "{{ .ProjectName }}"
-    replacements:
-      amd64: Intel
-      linux: Linux
     vendor: Ben Garrett.
     homepage: https://github.com/bengarrett/zipcmt
     maintainer: Ben Garrett <code.by.ben@gmail.com>
@@ -77,30 +66,18 @@ nfpms:
       - apk
       - deb
       - rpm
+      - archlinux
 
-scoop:
-  bucket:
-    owner: bengarrett
-    name: zipcmt
-
-  commit_author:
-    name: goreleaserbot
-    email: goreleaser@carlosbecker.com
-
-  commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
-
-  homepage: "https://github.com/bengarrett/zipcmt/"
-
-  description: "A batch viewer and extractor for large collections of zip archives."
-
-  license: LGPL 3.0
-
-  # Setting this will prevent goreleaser to actually try to commit the updated
-  # manifest leaving the responsibility of publishing it to the user.
-  # If set to auto, the release will not be uploaded to the scoop bucket
-  # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
-  # Default is false.
-  skip_upload: auto
+scoops:
+  - name: zipcmt
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/bengarrett/zipcmt/"
+    description: "A batch viewer and extractor for large collections of zip archives."
+    license: LGPL 3.0
+    skip_upload: auto
 
 changelog:
   skip: false
