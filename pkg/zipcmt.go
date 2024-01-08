@@ -14,10 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bengarrett/retrotxtgo/lib/convert"
+	"github.com/bengarrett/retrotxtgo/byter"
 	"github.com/bengarrett/zipcmt/internal/misc"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
+	"golang.org/x/text/encoding/charmap"
 )
 
 // Config zipcmt to walk one or more directories.
@@ -114,7 +115,7 @@ func Read(name string, raw bool) (string, error) {
 		return "", nil
 	}
 	if !raw {
-		b, err := convert.D437(cmmt)
+		b, err := byter.Decode(charmap.CodePage437, cmmt)
 		if err != nil {
 			return "", fmt.Errorf("codepage 437 decoder: %w", err)
 		}
