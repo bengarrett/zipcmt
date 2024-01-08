@@ -1,0 +1,92 @@
+# Task is a task runner / build tool that aims
+# to be simpler and easier to use.
+# https://taskfile.dev/installation/
+
+version: '3'
+
+vars:
+  BINNAME: zipcmt
+
+tasks:
+  default:
+    desc: "Task runner for the zipcmt source code."
+    cmds:
+      - task --list-all
+    silent: true
+  lint:
+    silent: false
+    desc: Runs the go formatter and lints the source code.
+    ignore_error: true
+    cmds:
+      - cmd: clear
+        platforms: [linux, darwin, freebsd]
+      - cmd: gci write ./..
+      - cmd: gofumpt -w .
+      - cmd: golangci-lint run
+  build:
+    desc: "Build the binary of the program."
+    cmds:
+      - cmd: echo "Building..."
+      - cmd: go build -o {{.BINNAME}} -v main.go
+        platforms: [linux, darwin, freebsd]
+      - cmd: go build -o {{.BINNAME}}.exe -v main.go
+        platforms: [windows]
+      - cmd: echo "Done!"
+  buildr:
+    desc: "Build the binary of the program with race detection."
+    cmds:
+      - cmd: echo "Building with race conditions..."
+      - cmd: go build -o {{.BINNAME}} -race -v main.go
+        platforms: [linux, darwin, freebsd]
+      - cmd: go build -o {{.BINNAME}}.exe -race -v main.go
+        platforms: [windows]
+      - cmd: ./{{.BINNAME}} --version
+        platforms: [linux,darwin]
+      - cmd: ./{{.BINNAME}}.exe --version
+        platforms: [windows]
+      - cmd: echo "Done!"
+  tag:
+    desc: "Print the current git tag."
+    silent: true
+    cmds:
+      - cmd: echo "The current git tag is:"
+      - cmd: git describe --tags
+      - cmd: echo ""
+      - cmd: echo "To add a tag, run         git tag -a v0.0.0 -m 'Message'"
+      - cmd: echo "To push a tag, run        git push origin v0.0.0"
+      - cmd: echo "To create a release, run  goreleaser release --clean"
+  test:
+    desc: "Run the test suite."
+    cmds:
+      - go test -count=1 ./...
+  test5x:
+    desc: "Run the test suite 5 times over."
+    cmds:
+      - go test -count=5 ./...
+  testr:
+    desc: "Run the verbose test suite with the slower race detection."
+    cmds:
+      - go test -count=1 -race ./...
+  pkg-patch:
+    silent: false
+    desc: Update and apply patches to the web server dependencies.
+    cmds:
+      - cmd: go get -u=patch -x
+      - cmd: go mod verify
+  pkg-update:
+    silent: false
+    desc: Update the web server dependencies.
+    cmds:
+      - cmd: go get -u -x
+      - cmd: go mod verify
+  ver:
+    silent: false
+    desc: Print the versions of the build and compiler tools.
+    ignore_error: true
+    cmds:
+      - cmd: go version
+      - cmd: gofumpt --version
+      - cmd: gci --version
+      - cmd: task --version
+      - cmd: golangci-lint --version
+      - cmd: goreleaser --version
