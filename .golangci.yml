@@ -4,27 +4,21 @@
 linters:
   enable-all: true
   disable:
-    - interfacer # Deprecated
-    - scopelint # Deprecated
-    - golint # Deprecated
-    - maligned # Deprecated
-    # unsupported in Go v1.18
-    - bodyclose
-    - contextcheck
-    - nilerr
-    - noctx
-    - rowserrcheck
-    - sqlclosecheck
+    # Deprecations
+    - deadcode
+    - exhaustivestruct
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - nosnakecase
+    - scopelint
     - structcheck
-    - tparallel
-    - unparam
-    - wastedassign
-
-    - exhaustivestruct # 'It is not recommended to use it for all files in a project'
-    - forbidigo # forbids the use for fmt.Print(f|ln)
+    - varcheck
+    # Opinionated
     - nlreturn # opinionated
-    - paralleltest # causes tests to randomly fail
-    - wsl # whitespace linter, slow, aggressive and opinionated
+    - paralleltest # excess work for little gain
+    - wsl # whitespace linter, aggressive and opinionated
 
 linters-settings:
   cyclop:
