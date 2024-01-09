@@ -54,12 +54,6 @@ wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.ta
 pacman -U zipcmt.pkg.tar.zst
 ```
 
-[Windows Scoop](https://scoop.sh/)
-```sh
-scoop bucket add zipcmt https://github.com/bengarrett/zipcmt.git
-scoop install zipcmt
-```
-
 ## macOS unverified developer
 
 Unfortunately, newer macOS versions do not permit the running of unsigned terminal applications out of the box. But there is a workaround.

@@ -68,17 +68,6 @@ nfpms:
       - rpm
       - archlinux
 
-scoops:
-  - name: zipcmt
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
-    homepage: "https://github.com/bengarrett/zipcmt/"
-    description: "A batch viewer and extractor for large collections of zip archives."
-    license: LGPL 3.0
-    skip_upload: auto
-
 changelog:
   skip: false
   use: git
