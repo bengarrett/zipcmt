@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/bengarrett/retrotxtgo/byter"
+	"github.com/bengarrett/sauce"
 	"github.com/bengarrett/zipcmt/internal/misc"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
@@ -117,6 +118,10 @@ func Read(name string, raw bool) (string, error) {
 		return "", nil
 	}
 	if !raw {
+		x := []byte(cmmt)
+		if ok := sauce.Contains(x); ok {
+			cmmt = string(sauce.Trim(x))
+		}
 		b, err := byter.Decode(charmap.CodePage437, cmmt)
 		if err != nil {
 			return "", fmt.Errorf("codepage 437 decoder: %w", err)

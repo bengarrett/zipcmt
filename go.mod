@@ -6,6 +6,7 @@ toolchain go1.21.5
 
 require (
 	github.com/bengarrett/retrotxtgo v1.0.0
+	github.com/bengarrett/sauce v1.2.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gookit/color v1.5.4
 	github.com/muesli/go-app-paths v0.2.2

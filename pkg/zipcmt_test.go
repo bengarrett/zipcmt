@@ -71,8 +71,8 @@ func Test_Read(t *testing.T) {
 		wantCmmt bool
 		wantErr  bool
 	}{
-		{"empty", fields{}, "", false, false},
-		{"bad file", fields{}, "../missing/no_such_files.zip", false, false},
+		{"empty", fields{}, "", false, true},
+		{"bad file", fields{}, "../missing/no_such_files.zip", false, true},
 		{"no comment file", fields{}, "../test/test-no-comment.zip", false, false},
 		{"file with comment", fields{}, "../test/test-with-comment.zip", true, false},
 	}
