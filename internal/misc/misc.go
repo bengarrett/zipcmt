@@ -66,7 +66,7 @@ func (e Export) Find(name string) string {
 	return ""
 }
 
-// ExportName returns a text file file path for the Export config.
+// ExportName returns a text file path for the Export config.
 func ExportName(path string) string {
 	if path == "" {
 		return ""

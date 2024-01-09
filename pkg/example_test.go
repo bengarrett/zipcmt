@@ -4,16 +4,17 @@ package zipcmt_test
 import (
 	"fmt"
 	"log"
+	"os"
 
 	zipcmt "github.com/bengarrett/zipcmt/pkg"
 	"github.com/gookit/color"
 )
 
-func init() { // nolint:gochecknoinits
+func init() {
 	color.Enable = false
 }
 
-func ExampleConfig() {
+func ExampleConfig() { //nolint: testableexamples
 	// print all comments found in the test directory
 	example := []string{"../test"}
 	a := zipcmt.Config{
@@ -23,7 +24,7 @@ func ExampleConfig() {
 	}
 	a.WalkDirs()
 	if s := a.Status(); s != "" {
-		fmt.Println(s)
+		fmt.Fprintln(os.Stdout, s)
 	}
 
 	// quietly scan and save only the unique comments as text files in the home directory
@@ -35,7 +36,7 @@ func ExampleConfig() {
 	}
 	b.WalkDirs()
 	if s := b.Status(); s != "" {
-		fmt.Println(s)
+		fmt.Fprintln(os.Stdout, s)
 	}
 
 	// quietly scan and count the unique comments
@@ -44,7 +45,7 @@ func ExampleConfig() {
 		Quiet: true,
 	}
 	c.WalkDirs()
-	fmt.Printf("Scanned %d zip archives and found %d unique comments\n", c.Zips, c.Cmmts)
+	fmt.Fprintf(os.Stdout, "Scanned %d zip archives and found %d unique comments\n", c.Zips, c.Cmmts)
 }
 
 func ExampleRead() {
@@ -52,7 +53,7 @@ func ExampleRead() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Print(s)
+	fmt.Fprint(os.Stdout, s)
 	// Output:
 	// This is an example test comment for zipcmmt.
 	//
@@ -64,7 +65,7 @@ func ExampleConfig_Status() {
 	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
-	fmt.Print(c.Status())
+	fmt.Fprint(os.Stdout, c.Status())
 
 	c = zipcmt.Config{
 		Dupes: true,
@@ -73,7 +74,7 @@ func ExampleConfig_Status() {
 	if err := c.WalkDir("../test"); err != nil {
 		log.Panicln(err)
 	}
-	fmt.Print(c.Status())
+	fmt.Fprint(os.Stdout, c.Status())
 	// Output:
 	// Scanned 4 zip archives and found 1 unique comment
 	// Scanned 4 zip archives and found 2 comments

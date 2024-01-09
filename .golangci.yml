@@ -16,6 +16,7 @@ linters:
     - structcheck
     - varcheck
     # Opinionated
+    - depguard # don't care for
     - nlreturn # opinionated
     - paralleltest # excess work for little gain
     - wsl # whitespace linter, aggressive and opinionated
@@ -32,3 +33,8 @@ issues:
     - path: _test\.go
       linters:
         - exhaustruct
+        - gochecknoinits
+    - path: main.go
+      linters:
+        - funlen
+        - gochecknoglobals

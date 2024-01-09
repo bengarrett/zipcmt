@@ -29,23 +29,24 @@ type Config struct {
 	Export    bool     // Export the comments as text files stored alongside the source zip files.
 	Log       bool     // Log creates a logfile for debugging.
 	Overwrite bool     // Overwrite any previously exported comment text files.
-	Now       bool     // Now ignores the zip files last modification date, which is otherwise applied to the comment text file.
-	NoWalk    bool     // NoWalk ignores all subdirectories while scanning for zip archives.
-	Raw       bool     // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
-	Print     bool     // Print found comments to stdout.
-	Quiet     bool     // Quiet suppresses the scan activity feedback to stdout.
-	Zips      int      // Zips is the number of zip files scanned.
-	Cmmts     int      // Cmmts are the number of zip comments found.
+	// Now ignores the zip files last modification date, which is otherwise applied to the comment text file.
+	Now    bool
+	NoWalk bool // NoWalk ignores all subdirectories while scanning for zip archives.
+	Raw    bool // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
+	Print  bool // Print found comments to stdout.
+	Quiet  bool // Quiet suppresses the scan activity feedback to stdout.
+	Zips   int  // Zips is the number of zip files scanned.
+	Cmmts  int  // Cmmts are the number of zip comments found.
 	internal
 }
 
 type internal struct {
 	test    bool
 	log     string
-	names   int         // nolint: structcheck
-	saved   int         // nolint: structcheck
-	exports misc.Export // nolint: structcheck
-	hashes  hash        // nolint: structcheck
+	names   int
+	saved   int
+	exports misc.Export
+	hashes  hash
 	timer   time.Time
 }
 
@@ -92,6 +93,7 @@ var (
 	ErrMissing  = errors.New("directory cannot be found")
 	ErrPath     = errors.New("directory path cannot be found or points to a file")
 	ErrPerm     = errors.New("directory access is blocked due to its permissions")
+	ErrRead     = errors.New("skip named zip file due to read error")
 	ErrValid    = errors.New("the operating system reports this directory is invalid")
 )
 
@@ -101,7 +103,7 @@ var (
 func Read(name string, raw bool) (string, error) {
 	r, err := zip.OpenReader(name)
 	if err != nil {
-		return "", nil // nolint: nilerr
+		return "", ErrRead
 	}
 	defer r.Close()
 	cmmt := r.Comment
@@ -140,7 +142,7 @@ func (c *Config) WalkDirs() {
 }
 
 // WalkDir walks the root directory for zip archives and to extract any found comments.
-func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
+func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 	c.init()
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -163,13 +165,15 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 		}
 		c.Zips++
 		if !c.test && !c.Print && !c.Quiet {
-			fmt.Print("\r", color.Secondary.Sprint("Scanned "),
+			fmt.Fprint(os.Stdout, "\r", color.Secondary.Sprint("Scanned "),
 				color.Primary.Sprintf("%d zip archives", c.Zips))
 		}
 		// read zip file comment
 		cmmt, err := Read(path, c.Raw)
 		if err != nil {
-			c.Error(err)
+			if !errors.Is(err, ErrRead) {
+				c.Error(err)
+			}
 			return nil
 		}
 		if cmmt == "" {
@@ -185,7 +189,7 @@ func (c *Config) WalkDir(root string) error { // nolint: cyclop,funlen,gocognit
 		}
 		c.Cmmts++
 		// print the comment
-		fmt.Print(c.Separator(path))
+		fmt.Fprint(os.Stdout, c.Separator(path))
 		if c.Print {
 			stdout(cmmt)
 		}
@@ -236,7 +240,7 @@ func walkErrs(root string, err error) error {
 		return fmt.Errorf("%w: %s, %s", ErrPerm, f.Mode(), root)
 	}
 	if err != nil {
-		return fmt.Errorf("walk directory: %s, %w %T", root, err, err)
+		return fmt.Errorf("walk directory: %s, %w %T", root, err, err.Error())
 	}
 	return nil
 }
@@ -392,9 +396,13 @@ func (c *Config) save(dat save) bool {
 	if dat.cmmt[len(dat.cmmt)-1:] != "\n" {
 		dat.cmmt += "\n"
 	}
-	if i, err := f.Write([]byte(dat.cmmt)); err != nil {
+	b := []byte(dat.cmmt)
+	i, err := f.Write(b)
+	if err != nil {
 		c.Error(fmt.Errorf("%s: %w", dat.name, err))
-	} else if i == 0 {
+		return true
+	}
+	if i == 0 {
 		if err1 := os.Remove(dat.name); err1 != nil {
 			c.Error(fmt.Errorf("%s: %w", dat.name, err1))
 		}
@@ -405,5 +413,5 @@ func (c *Config) save(dat save) bool {
 // stdout prints the cmmt with an ANSI reset command.
 func stdout(cmmt string) {
 	const resetCmd = "\033[0m"
-	fmt.Printf("%s%s\n", cmmt, resetCmd)
+	fmt.Fprintf(os.Stdout, "%s%s\n", cmmt, resetCmd)
 }

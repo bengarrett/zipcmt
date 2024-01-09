@@ -22,13 +22,13 @@ var (
 	brand string
 
 	version = "0.0.0"
-	commit  = "unset" // nolint: gochecknoglobals
-	date    = "unset" // nolint: gochecknoglobals
+	commit  = "unset"
+	date    = "unset"
 )
 
 const winOS = "windows"
 
-func main() { // nolint: funlen
+func main() {
 	const ellipsis = "\u2026"
 	var c zipcmt.Config
 	var noprint bool
@@ -94,9 +94,9 @@ func main() { // nolint: funlen
 	// file and directory scan
 	c.WalkDirs()
 	// summaries
-	fmt.Println(c.Status())
+	fmt.Fprintln(os.Stdout, c.Status())
 	if s := c.LogName(); s != "" {
-		fmt.Printf("%s %s\n", "The log is found at", color.Primary.Sprint(s))
+		fmt.Fprintf(os.Stdout, "%s %s\n", "The log is found at", color.Primary.Sprint(s))
 	}
 }
 
@@ -233,15 +233,15 @@ func optimial(w *tabwriter.Writer) {
 func info(quiet *bool) {
 	const copyright = "\u00A9"
 	if !*quiet {
-		fmt.Println(brand)
+		fmt.Fprintln(os.Stdout, brand)
 	}
-	fmt.Printf("zipcmt v%s\n%s 2021-22 Ben Garrett, logo by sensenstahl\n", version, copyright)
-	fmt.Printf("https://github.com/bengarrett/zipcmt\n\n")
-	fmt.Printf("build: %s (%s)\n", commit, date)
+	fmt.Fprintf(os.Stdout, "zipcmt v%s\n%s 2021-24 Ben Garrett, logo by sensenstahl\n", version, copyright)
+	fmt.Fprintf(os.Stdout, "https://github.com/bengarrett/zipcmt\n\n")
+	fmt.Fprintf(os.Stdout, "build: %s (%s)\n", commit, date)
 	exe, err := misc.Self()
 	if err != nil {
-		fmt.Printf("path: %s\n", err)
+		fmt.Fprintf(os.Stdout, "path: %s\n", err)
 		return
 	}
-	fmt.Printf("path: %s\n", exe)
+	fmt.Fprintf(os.Stdout, "path: %s\n", exe)
 }

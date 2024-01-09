@@ -7,6 +7,7 @@ package zipcmt_test
 import (
 	"fmt"
 	"log"
+	"os"
 
 	zipcmt "github.com/bengarrett/zipcmt/pkg"
 )
@@ -18,7 +19,7 @@ func ExampleConfig_clean() {
 	if err := c.Clean(); err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Print(c.SaveName)
+	fmt.Fprint(os.Stdout, c.SaveName)
 	// Output: ..\test
 }
 
