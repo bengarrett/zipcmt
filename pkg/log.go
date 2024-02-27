@@ -68,7 +68,7 @@ func (c *Config) WriteLog(s string) {
 	if c.SaveName != "" {
 		l += fmt.Sprintf("names: %s; ", humanize.Bytes(uint64(c.names)))
 	}
-	l += fmt.Sprintf("%s\n", s)
+	l += s + "\n"
 	logger.Printf(l)
 }
 
