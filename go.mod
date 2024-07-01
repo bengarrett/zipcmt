@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gookit/color v1.5.4
 	github.com/muesli/go-app-paths v0.2.2
-	golang.org/x/text v0.15.0
+	golang.org/x/text v0.16.0
 )
 
 require (
