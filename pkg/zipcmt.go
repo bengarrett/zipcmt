@@ -227,7 +227,10 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 		}
 		return err
 	})
-	return walkErrs(root, err)
+	if errs := walkErrs(root, err); errs != nil {
+		color.Error.Tips(fmt.Sprint(errs))
+	}
+	return nil
 }
 
 func walkErrs(root string, err error) error {
