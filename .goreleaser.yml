@@ -3,7 +3,7 @@
 # test the config:
 # goreleaser check
 # goreleaser release --skip=publish --skip=validate --clean
-
+version: 2
 before:
   hooks:
     - go mod tidy
@@ -69,5 +69,4 @@ nfpms:
       - archlinux
 
 changelog:
-  skip: false
   use: git

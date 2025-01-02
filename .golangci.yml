@@ -5,16 +5,7 @@ linters:
   enable-all: true
   disable:
     # Deprecations
-    - deadcode
-    - exhaustivestruct
-    - golint
-    - ifshort
-    - interfacer
-    - maligned
-    - nosnakecase
-    - scopelint
-    - structcheck
-    - varcheck
+    - exportloopref
     # Opinionated
     - depguard # don't care for
     - nlreturn # opinionated
