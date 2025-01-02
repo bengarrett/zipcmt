@@ -30,7 +30,8 @@ type Config struct {
 	Export    bool     // Export the comments as text files stored alongside the source zip files.
 	Log       bool     // Log creates a logfile for debugging.
 	Overwrite bool     // Overwrite any previously exported comment text files.
-	// Now ignores the zip files last modification date, which is otherwise applied to the comment text file.
+	// Now ignores the zip files last modification date,
+	// which is otherwise applied to the comment text file.
 	Now    bool
 	NoWalk bool // NoWalk ignores all subdirectories while scanning for zip archives.
 	Raw    bool // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
@@ -44,7 +45,7 @@ type Config struct {
 type internal struct {
 	test    bool
 	log     string
-	names   int
+	names   uint
 	saved   int
 	exports misc.Export
 	hashes  hash
@@ -107,6 +108,7 @@ func Read(name string, raw bool) (string, error) {
 		return "", ErrRead
 	}
 	defer r.Close()
+
 	cmmt := r.Comment
 	if cmmt == "" {
 		return "", nil
@@ -117,18 +119,19 @@ func Read(name string, raw bool) (string, error) {
 	if strings.TrimSpace(cmmt) == "" {
 		return "", nil
 	}
-	if !raw {
-		x := []byte(cmmt)
-		if ok := sauce.Contains(x); ok {
-			cmmt = string(sauce.Trim(x))
-		}
-		b, err := byter.Decode(charmap.CodePage437, cmmt)
-		if err != nil {
-			return "", fmt.Errorf("codepage 437 decoder: %w", err)
-		}
-		cmmt = string(b)
+
+	if raw {
+		return cmmt, nil
 	}
-	return cmmt, nil
+	p := []byte(cmmt)
+	if ok := sauce.Contains(p); ok {
+		cmmt = string(sauce.Trim(p))
+	}
+	b, err := byter.Decode(charmap.CodePage437, cmmt)
+	if err != nil {
+		return "", fmt.Errorf("codepage 437 decoder: %w", err)
+	}
+	return string(b), nil
 }
 
 // WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
@@ -215,7 +218,7 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 		}
 		if c.SaveName != "" {
 			dat.name = c.exports.Unique(path, c.SaveName)
-			c.names += len(dat.name)
+			c.names += uint(len(dat.name))
 			if c.save(dat) {
 				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
 					dat.name, humanize.Bytes(uint64(len(cmmt))), path))
@@ -329,7 +332,7 @@ func (c *Config) Separator(name string) string {
 }
 
 // Status summarizes the zip files scan.
-func (c Config) Status() string {
+func (c *Config) Status() string {
 	if c.Log {
 		if c.SaveName != "" {
 			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.Cmmts)
@@ -379,7 +382,7 @@ func (c *Config) save(dat save) bool {
 	}
 	if !dat.ow {
 		if s, err := os.Stat(dat.name); err == nil {
-			size := humanize.Bytes(uint64(s.Size()))
+			size := humanize.Bytes(uint64(s.Size())) //nolint:gosec
 			info := fmt.Sprintf("export skipped, file already exists: %s (%s)", dat.name, size)
 			color.Info.Tips(info)
 			c.WriteLog(fmt.Sprintf("SKIP (exists): %s (%s)", dat.name, size))

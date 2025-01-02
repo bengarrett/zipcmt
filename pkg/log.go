@@ -63,13 +63,14 @@ func (c *Config) WriteLog(s string) {
 	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.Zips, c.Cmmts)
 	if !c.Dupes {
 		const hashLen = 32
-		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(uint64(len(c.hashes)*hashLen)))
+		x := uint64(len(c.hashes)) * uint64(hashLen)
+		l += fmt.Sprintf("hashes: %s; ", humanize.Bytes(x))
 	}
 	if c.SaveName != "" {
 		l += fmt.Sprintf("names: %s; ", humanize.Bytes(uint64(c.names)))
 	}
 	l += s + "\n"
-	logger.Printf(l)
+	logger.Print(l)
 }
 
 // logHeader creates a header for new log files that lists all the values of Config.
@@ -82,8 +83,7 @@ func (c *Config) logHeader(logger *log.Logger) {
 	// see: https://scene-si.org/2017/12/21/introduction-to-reflection/
 	v := reflect.ValueOf(c).Elem()
 	t := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		fmt.Fprintf(w, "%02d. %s:\t\t%v\n", i+1, t.Field(i).Name, v.Field(i))
 		if t.Field(i).Name == "test" {
 			break
