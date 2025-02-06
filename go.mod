@@ -3,7 +3,7 @@ module github.com/bengarrett/zipcmt
 go 1.23.4
 
 require (
-	github.com/bengarrett/retrotxtgo v1.0.1
+	github.com/bengarrett/retrotxtgo v1.0.3
 	github.com/bengarrett/sauce v1.2.3
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gookit/color v1.5.4
