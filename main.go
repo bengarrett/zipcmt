@@ -31,29 +31,29 @@ const winOS = "windows"
 
 func main() {
 	const ellipsis = "\u2026"
-	var c zipcmt.Config
+	var configs zipcmt.Config
 	var noprint bool
-	c.SetTimer()
+	configs.SetTimer()
 	flag.BoolVar(&noprint, "noprint", false,
 		"do not print comments to the terminal to improve the performance of the scan")
-	flag.BoolVar(&c.NoWalk, "norecursive", false,
+	flag.BoolVar(&configs.NoWalk, "norecursive", false,
 		"do not recursively walk through any subdirectories while scanning for zip archives")
-	flag.BoolVar(&c.Export, "export", false,
+	flag.BoolVar(&configs.Export, "export", false,
 		fmt.Sprintf("save the comments as text files stored alongside the zip files (%s)",
 			color.Danger.Sprint("use at your own risk")))
-	flag.BoolVar(&c.Dupes, "all", false,
+	flag.BoolVar(&configs.Dupes, "all", false,
 		"show all comments, including duplicates in multiple zips")
-	flag.BoolVar(&c.Now, "now", false,
+	flag.BoolVar(&configs.Now, "now", false,
 		"do not use the last modification date sourced from the zip files")
-	flag.BoolVar(&c.Log, "log", false,
+	flag.BoolVar(&configs.Log, "log", false,
 		"create a logfile for debugging")
-	flag.BoolVar(&c.Overwrite, "overwrite", false,
+	flag.BoolVar(&configs.Overwrite, "overwrite", false,
 		"overwrite any previously exported comment text files")
-	flag.BoolVar(&c.Quiet, "quiet", false,
+	flag.BoolVar(&configs.Quiet, "quiet", false,
 		"suppress zipcmt feedback except for errors")
-	flag.BoolVar(&c.Raw, "raw", false,
+	flag.BoolVar(&configs.Raw, "raw", false,
 		"use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
-	flag.StringVar(&c.SaveName, "save", "",
+	flag.StringVar(&configs.SaveName, "save", "",
 		"save the comments to uniquely named textfiles in this directory")
 	ver := flag.Bool("version", false,
 		"version and information for this program")
@@ -71,32 +71,32 @@ func main() {
 	flags(ver, aliasV, aliasQ)
 	// parse aliases
 	if *aliasR {
-		c.NoWalk = true
+		configs.NoWalk = true
 	}
 	if *aliasU || noprint {
-		c.Print = false
+		configs.Print = false
 	} else {
-		c.Print = true
+		configs.Print = true
 	}
 	if *aliasS != "" {
-		c.SaveName = *aliasS
+		configs.SaveName = *aliasS
 	}
 	if *aliasO {
-		c.Overwrite = true
+		configs.Overwrite = true
 	}
 	if *aliasQ {
-		c.Quiet = true
+		configs.Quiet = true
 	}
 	if *aliasA {
-		c.Dupes = true
+		configs.Dupes = true
 	}
 	// directories to scan
-	c.Dirs = flag.Args()
+	configs.Dirs = flag.Args()
 	// file and directory scan
-	c.WalkDirs()
+	configs.WalkDirs()
 	// summaries
-	fmt.Fprintln(os.Stdout, c.Status())
-	if s := c.LogName(); s != "" {
+	fmt.Fprintln(os.Stdout, configs.Status())
+	if s := configs.LogName(); s != "" {
 		fmt.Fprintf(os.Stdout, "%s %s\n", "The log is found at", color.Primary.Sprint(s))
 	}
 }
@@ -236,7 +236,7 @@ func info(w io.Writer, quiet *bool) {
 	if !*quiet {
 		fmt.Fprintln(w, brand)
 	}
-	fmt.Fprintf(w, "zipcmt v%s\n%s 2021-24 Ben Garrett, logo by sensenstahl\n",
+	fmt.Fprintf(w, "zipcmt v%s\n%s 2021-25 Ben Garrett, logo by sensenstahl\n",
 		version, copyright)
 	fmt.Fprintf(w, "https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Fprintf(w, "build: %s (%s)\n", commit, date)

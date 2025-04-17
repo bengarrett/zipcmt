@@ -268,11 +268,11 @@ func (c *Config) Clean() error {
 	name = filepath.Clean(name)
 	before, _, _ := strings.Cut(name, string(filepath.Separator))
 	if before == "~" {
-		hd, err := os.UserHomeDir()
+		dir, err := os.UserHomeDir()
 		if err != nil {
 			return fmt.Errorf("%s: export %w", name, err)
 		}
-		name = strings.Replace(name, "~", hd, 1)
+		name = strings.Replace(name, "~", dir, 1)
 	}
 	s, err := os.Stat(name)
 	if errors.Is(err, fs.ErrInvalid) {
@@ -301,9 +301,9 @@ func (c *Config) Separator(name string) string {
 	}
 	const fileID = 45
 	const pointer = " \u2500\u2500 "
-	if h, err := os.UserHomeDir(); err == nil {
-		if len(name) > len(h) && name[0:len(h)] == h {
-			name = strings.Replace(name, h, "~", 1)
+	if dir, err := os.UserHomeDir(); err == nil {
+		if len(name) > len(dir) && name[0:len(dir)] == dir {
+			name = strings.Replace(name, dir, "~", 1)
 		}
 	}
 	l := len(pointer) + len(name)

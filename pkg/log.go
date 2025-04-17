@@ -98,11 +98,11 @@ func logName() string {
 	filename := time.Now().Format(yyyymmddTime) + ".log"
 	name, err := gap.NewScope(gap.User, "zipcmt").LogPath(filename)
 	if err != nil {
-		h, err2 := os.UserHomeDir()
+		dir, err2 := os.UserHomeDir()
 		if err2 != nil {
 			log.Fatalln(fmt.Errorf("logName UserHomeDir: %w", err2))
 		}
-		name = path.Join(h, filename)
+		name = path.Join(dir, filename)
 	}
 	return name
 }
