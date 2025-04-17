@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -378,7 +379,7 @@ func (c *Config) lastMod(file fs.DirEntry) time.Time {
 	return i.ModTime()
 }
 
-// SaveName a zip cmmt to the file path.
+// save a zip cmmt to the file path.
 // Unless the overwrite argument is set, any previous cmmt text files are skipped.
 func (c *Config) save(dat save) bool {
 	// name, cmmt string, mod time.Time, ow bool
@@ -394,11 +395,11 @@ func (c *Config) save(dat save) bool {
 			return false
 		}
 	}
-	f, err := os.Create(dat.name)
+	dst, err := os.Create(dat.name)
 	if err != nil {
 		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 	}
-	defer f.Close()
+	defer dst.Close()
 	if !dat.mod.IsZero() {
 		defer func() {
 			if err := os.Chtimes(dat.name, time.Now(), dat.mod); err != nil {
@@ -409,13 +410,15 @@ func (c *Config) save(dat save) bool {
 	if dat.cmmt[len(dat.cmmt)-1:] != "\n" {
 		dat.cmmt += "\n"
 	}
-	b := []byte(dat.cmmt)
-	i, err := f.Write(b)
+
+	const size = 4 * 1024
+	buf := make([]byte, size)
+	written, err := io.CopyBuffer(dst, strings.NewReader(dat.cmmt), buf)
 	if err != nil {
 		c.Error(fmt.Errorf("%s: %w", dat.name, err))
-		return true
+		return false
 	}
-	if i == 0 {
+	if written == 0 {
 		if err1 := os.Remove(dat.name); err1 != nil {
 			c.Error(fmt.Errorf("%s: %w", dat.name, err1))
 		}

@@ -1,5 +1,7 @@
 github.com/bengarrett/retrotxtgo v1.0.3 h1:iSgAbXt9viZHfvuUcbMAuEpCXQDiClLcmiCczA16kLA=
 github.com/bengarrett/retrotxtgo v1.0.3/go.mod h1:Zh6jQBkovgzJIcX068ydiafYrhqc+Bi0lJxjjADTFWg=
+github.com/bengarrett/retrotxtgo v1.0.4 h1:NpkMNL9kbtBCuMC4bKAQm4PwOX6b584jqv4n7BqtWN0=
+github.com/bengarrett/retrotxtgo v1.0.4/go.mod h1:aIkYrpGizu8Pd6lnyt7aHYYLlJSvEqCtZ5uUZIXDzmE=
 github.com/bengarrett/sauce v1.2.3 h1:c+BWYHJmSfGF4TL7DtLqFOPL1wKKBfKLO936fn/PWMQ=
 github.com/bengarrett/sauce v1.2.3/go.mod h1:UidGZBd4t4Qr0vJ/XC5lY2XX2hzsdYXBDUh+HshrIvc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

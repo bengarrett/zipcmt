@@ -45,18 +45,18 @@ func (c *Config) WriteLog(s string) {
 	}
 
 	const perm = 0o644
-	f, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
+	out, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
 	if err1 != nil {
 		log.Fatalln(err1)
 	}
 
-	logger := log.New(f, "zipcmt|", log.LstdFlags)
-	st, err2 := f.Stat()
+	logger := log.New(out, "zipcmt|", log.LstdFlags)
+	st, err2 := out.Stat()
 	if err2 != nil {
-		f.Close()
+		out.Close()
 		log.Fatalln(err2)
 	}
-	defer f.Close()
+	defer out.Close()
 	if st.Size() == 0 {
 		c.logHeader(logger)
 	}
