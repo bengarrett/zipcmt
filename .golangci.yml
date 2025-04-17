@@ -1,31 +1,45 @@
-# golangci-lint run
-# gofumpt -l -w -s .
-
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
-    # Deprecations
-    - exportloopref
-    # Opinionated
-    - depguard # don't care for
-    - nlreturn # opinionated
-    - paralleltest # excess work for little gain
-    - wsl # whitespace linter, aggressive and opinionated
-
-linters-settings:
-  cyclop:
-    max-complexity: 15 # default value 10 requires unnecessary refactoring
-  varnamelen:
-    min-name-length: 1 # default value 3 is too short
-
-issues:
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - exhaustruct
-        - gochecknoinits
-    - path: main.go
-      linters:
-        - funlen
-        - gochecknoglobals
+    - depguard
+    - nlreturn
+    - paralleltest
+    - wsl
+  settings:
+    cyclop:
+      max-complexity: 15
+    varnamelen:
+      min-name-length: 1
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - exhaustruct
+          - gochecknoinits
+        path: _test\.go
+      - linters:
+          - funlen
+          - gochecknoglobals
+        path: main.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

@@ -143,13 +143,12 @@ func (c *Config) WalkDirs() {
 	}
 	// walk through the directories provided
 	for _, root := range c.Dirs {
-		if err := c.WalkDir(root); err != nil {
-			c.Error(err)
-		}
+		_ = c.WalkDir(root)
 	}
 }
 
 // WalkDir walks the root directory for zip archives and to extract any found comments.
+// The returned error is only used for testing purposes.
 func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 	c.init()
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
@@ -230,6 +229,9 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 	if errs := walkErrs(root, err); errs != nil {
 		color.Error.Tips(fmt.Sprint(errs))
 	}
+	if err != nil {
+		return fmt.Errorf("walk dir %w: %s", err, root)
+	}
 	return nil
 }
 
@@ -291,30 +293,6 @@ func (c *Config) Clean() error {
 	return nil
 }
 
-// init initialise the Config maps.
-func (c *Config) init() {
-	if c.exports == nil {
-		c.exports = make(misc.Export)
-	}
-	if c.hashes == nil {
-		c.hashes = make(hash)
-	}
-}
-
-// lastMod preserves the zip files last modification date.
-func (c *Config) lastMod(file fs.DirEntry) time.Time {
-	zero := time.Date(0o001, 1, 1, 0o0, 0o0, 0o0, 0o0, time.UTC)
-	if c.Now {
-		return zero
-	}
-	i, err := file.Info()
-	if err != nil {
-		c.Error(err)
-		return zero
-	}
-	return i.ModTime()
-}
-
 // Separator prints and stylises the named file.
 func (c *Config) Separator(name string) string {
 	if !c.Print || c.Quiet {
@@ -374,6 +352,30 @@ func (c *Config) Status() string {
 			color.Primary.Sprintf("%s", c.Timer()) + "\n"
 	}
 	return s
+}
+
+// init initialise the Config maps.
+func (c *Config) init() {
+	if c.exports == nil {
+		c.exports = make(misc.Export)
+	}
+	if c.hashes == nil {
+		c.hashes = make(hash)
+	}
+}
+
+// lastMod preserves the zip files last modification date.
+func (c *Config) lastMod(file fs.DirEntry) time.Time {
+	zero := time.Date(0o001, 1, 1, 0o0, 0o0, 0o0, 0o0, time.UTC)
+	if c.Now {
+		return zero
+	}
+	i, err := file.Info()
+	if err != nil {
+		c.Error(err)
+		return zero
+	}
+	return i.ModTime()
 }
 
 // SaveName a zip cmmt to the file path.

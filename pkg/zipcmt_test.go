@@ -3,7 +3,6 @@
 package zipcmt_test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -102,11 +101,6 @@ func TestConfig_Scans(t *testing.T) {
 		zips      int
 		cmmts     int
 	}
-	tmp, err := os.MkdirTemp(os.TempDir(), "zipcmtscanstest")
-	if err != nil {
-		t.Errorf("Cannot create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tmp)
 	tests := []struct {
 		name    string
 		fields  fields
@@ -116,7 +110,7 @@ func TestConfig_Scans(t *testing.T) {
 		{"no root", fields{}, "", true},
 		{"bad root", fields{}, "../test/missing", true},
 		{"test dir", fields{Dupes: true}, "../test", false},
-		{"exportdir", fields{Dupes: true, SaveName: tmp}, "../test", false},
+		{"exportdir", fields{Dupes: true, SaveName: t.TempDir()}, "../test", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
