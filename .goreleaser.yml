@@ -13,7 +13,7 @@ builds:
     goarch: ["amd64"]
   - id: Linux_Intel
     goos: ["linux"]
-    goarch: ["amd64"]  
+    goarch: ["amd64"]
   - id: Linux_ARM
     goos: ["linux"]
     goarch: ["arm64"]
@@ -52,7 +52,6 @@ archives:
     files:
       - none*
     name_template: "{{ .ProjectName }}_Windows_Intel"
-
 nfpms:
   - id: Linux
     builds: ["Linux_Intel"]
@@ -67,6 +66,5 @@ nfpms:
       - deb
       - rpm
       - archlinux
-
 changelog:
   use: git
