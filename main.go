@@ -10,10 +10,11 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/bengarrett/zipcmt/internal/misc"
+	"github.com/bengarrett/zipcmt/internal/cmnt"
 	zipcmt "github.com/bengarrett/zipcmt/pkg"
 	"github.com/gookit/color"
 )
@@ -39,10 +40,10 @@ func main() {
 	flag.BoolVar(&configs.NoWalk, "norecursive", false,
 		"do not recursively walk through any subdirectories while scanning for zip archives")
 	flag.BoolVar(&configs.Export, "export", false,
-		fmt.Sprintf("save the comments as text files stored alongside the zip files (%s)",
-			color.Danger.Sprint("use at your own risk")))
+		fmt.Sprintf("save comments to the directories that contain the zip files (%s)",
+			color.Danger.Sprint("not advised")))
 	flag.BoolVar(&configs.Dupes, "all", false,
-		"show all comments, including duplicates in multiple zips")
+		"show every comment, including all the duplicates")
 	flag.BoolVar(&configs.Now, "now", false,
 		"do not use the last modification date sourced from the zip files")
 	flag.BoolVar(&configs.Log, "log", false,
@@ -54,7 +55,7 @@ func main() {
 	flag.BoolVar(&configs.Raw, "raw", false,
 		"use the original comment text encoding (CP437, ISO-8859"+ellipsis+") instead of Unicode")
 	flag.StringVar(&configs.SaveName, "save", "",
-		"save the comments to uniquely named textfiles in this directory")
+		"save the comments to this directory as unique named text files")
 	ver := flag.Bool("version", false,
 		"version and information for this program")
 	aliasA := flag.Bool("a", false, "alias for all")
@@ -190,37 +191,56 @@ func help(w io.Writer, logo bool) {
 	fmt.Fprintln(w, "Options:")
 	const padding = 4
 	tw := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
-	f = flag.Lookup("save")
-	fmt.Fprintf(tw, "    -%v, -%v=DIRECTORY\t%v\n", "s", f.Name, f.Usage)
-	f = flag.Lookup("overwrite")
-	fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("noprint")
-	fmt.Fprintf(tw, "    -p, -%v\t%v\n", f.Name, f.Usage)
-	fmt.Fprintln(tw, "                \t")
-	f = flag.Lookup("norecursive")
-	fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
-	f = flag.Lookup("all")
-	fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("now")
-	fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
-	f = flag.Lookup("raw")
-	fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
-	fmt.Fprintln(tw, "                \t")
-	f = flag.Lookup("export")
-	fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
-	fmt.Fprintln(tw, "                \t")
-	f = flag.Lookup("quiet")
-	fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	f = flag.Lookup("version")
-	fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-	fmt.Fprintln(tw, "    -h, -help\tshow this list of options")
-	fmt.Fprintln(tw)
+	names := []string{
+		"save", "overwrite", "noprint", "norecursive", "all", "now", "raw", "export", "quiet", "version",
+	}
+	for name := range slices.Values(names) {
+		f = flag.Lookup(name)
+		if f == nil {
+			fmt.Fprintf(os.Stderr, "flag lookup failure %q: %s", name, flag.ErrHelp)
+			continue
+		}
+		helper(tw, f, name)
+	}
 	optimial(tw)
 	tw.Flush()
 }
 
+func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
+	if tw == nil || f == nil {
+		return
+	}
+	switch name {
+	case "save":
+		fmt.Fprintf(tw, "    -%v, -%v=DIRECTORY\t%v\n", "s", f.Name, f.Usage)
+	case "overwrite":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	case "noprint":
+		fmt.Fprintf(tw, "    -p, -%v\t%v\n", f.Name, f.Usage)
+		fmt.Fprintln(tw, "                \t")
+	case "norecursive":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
+	case "all":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	case "now":
+		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
+	case "raw":
+		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
+		fmt.Fprintln(tw, "                \t")
+	case "export":
+		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
+		fmt.Fprintln(tw, "                \t")
+	case "quiet":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+	case "version":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+		fmt.Fprintln(tw, "    -h, -help\tshow this list of options")
+		fmt.Fprintln(tw)
+	}
+}
+
 func optimial(tw *tabwriter.Writer) {
-	if runtime.GOOS != winOS {
+	if runtime.GOOS != winOS || tw == nil {
 		return
 	}
 	fmt.Fprintln(tw, "For optimal performance Windows users may wish to temporarily disable"+
@@ -240,7 +260,7 @@ func info(w io.Writer, quiet *bool) {
 		version, copyright)
 	fmt.Fprintf(w, "https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Fprintf(w, "build: %s (%s)\n", commit, date)
-	exe, err := misc.Self()
+	exe, err := cmnt.Self()
 	if err != nil {
 		fmt.Fprintf(w, "path: %s\n", err)
 		return

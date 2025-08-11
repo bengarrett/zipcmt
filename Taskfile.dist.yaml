@@ -10,6 +10,11 @@ tasks:
     cmds:
       - task --list-all
     silent: true
+  doc:
+    desc: "Generate and browse the application module documentation."
+    cmds:
+      - cmd: pkgsite -http localhost:8090
+    silent: true
   lint:
     silent: false
     desc: Runs the go formatter and lints the source code.
@@ -20,6 +25,10 @@ tasks:
       - cmd: gci write ./..
       - cmd: gofumpt -w .
       - cmd: golangci-lint run
+  nil:
+    desc: "Run the static analysis techniques to catch Nil dereferences."
+    cmds:
+      - go tool nilaway -test=false ./...
   build:
     desc: "Build the binary of the program."
     cmds:
@@ -52,18 +61,6 @@ tasks:
       - cmd: echo "To add a tag, run         git tag -a v0.0.0 -m 'Message'"
       - cmd: echo "To push a tag, run        git push origin v0.0.0"
       - cmd: echo "To create a release, run  goreleaser release --clean"
-  test:
-    desc: "Run the test suite."
-    cmds:
-      - go test -count=1 ./...
-  test5x:
-    desc: "Run the test suite 5 times over."
-    cmds:
-      - go test -count=5 ./...
-  testr:
-    desc: "Run the verbose test suite with the slower race detection."
-    cmds:
-      - go test -count=1 -race ./...
   pkg-patch:
     silent: false
     desc: Update and apply patches to the web server dependencies.
@@ -76,15 +73,11 @@ tasks:
     cmds:
       - cmd: go get -u -x
       - cmd: go mod verify
-  ver:
-    silent: false
-    desc: Print the versions of the build and compiler tools.
-    ignore_error: true
+  test:
+    desc: "Run the test suite."
     cmds:
-      - cmd: go version
-      - cmd: gofumpt --version
-      - cmd: gci --version
-      - cmd: task --version
-      - cmd: golangci-lint --version
-      - cmd: goreleaser --version
-
+      - go test -count=1 ./...
+  testr:
+    desc: "Run the verbose test suite with the slower race detection."
+    cmds:
+      - go test -count=1 -race ./...

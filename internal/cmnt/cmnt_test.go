@@ -1,9 +1,9 @@
-package misc_test
+package cmnt_test
 
 import (
 	"testing"
 
-	"github.com/bengarrett/zipcmt/internal/misc"
+	"github.com/bengarrett/zipcmt/internal/cmnt"
 )
 
 func TestExportName(t *testing.T) {
@@ -19,7 +19,7 @@ func TestExportName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := misc.ExportName(tt.path); got != tt.want {
+			if got := cmnt.ExportName(tt.path); got != tt.want {
 				t.Errorf("ExportName() = %v, want %v", got, tt.want)
 			}
 		})
@@ -27,7 +27,7 @@ func TestExportName(t *testing.T) {
 }
 
 func TestExportFind(t *testing.T) {
-	files := misc.Export{
+	files := cmnt.Export{
 		"file.txt":   true,
 		"file_1.txt": true,
 		"file_2.txt": true,
@@ -35,7 +35,7 @@ func TestExportFind(t *testing.T) {
 	}
 	tests := []struct {
 		name  string
-		e     misc.Export
+		e     cmnt.Export
 		fname string
 		want  string
 	}{
@@ -64,7 +64,7 @@ func TestSelf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := misc.Self()
+			_, err := cmnt.Self()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Self() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -86,7 +86,7 @@ func TestValid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := misc.Valid(tt.fname); got != tt.want {
+			if got := cmnt.Valid(tt.fname); got != tt.want {
 				t.Errorf("Valid() = %v, want %v", got, tt.want)
 			}
 		})

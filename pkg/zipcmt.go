@@ -17,7 +17,7 @@ import (
 
 	"github.com/bengarrett/retrotxtgo/byter"
 	"github.com/bengarrett/sauce"
-	"github.com/bengarrett/zipcmt/internal/misc"
+	"github.com/bengarrett/zipcmt/internal/cmnt"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 	"golang.org/x/text/encoding/charmap"
@@ -25,6 +25,8 @@ import (
 
 // Config zipcmt to walk one or more directories.
 type Config struct {
+	internal
+
 	Dirs      []string // Dirs are the directory paths to walk.
 	SaveName  string   // SaveName is an optional directory path to save any found comments as uniquely named text files.
 	Dupes     bool     // Dupes shows all comments, including duplicates found in multiple zips.
@@ -40,7 +42,6 @@ type Config struct {
 	Quiet  bool // Quiet suppresses the scan activity feedback to stdout.
 	Zips   int  // Zips is the number of zip files scanned.
 	Cmmts  int  // Cmmts are the number of zip comments found.
-	internal
 }
 
 type internal struct {
@@ -48,7 +49,7 @@ type internal struct {
 	log     string
 	names   uint
 	saved   int
-	exports misc.Export
+	exports cmnt.Export
 	hashes  hash
 	timer   time.Time
 }
@@ -164,7 +165,7 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 			return err
 		}
 		// skip directories and non-zip files
-		if d.IsDir() || !misc.Valid(d.Name()) {
+		if d.IsDir() || !cmnt.Valid(d.Name()) {
 			return nil
 		}
 		// skip sub-directories
@@ -210,7 +211,7 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 			ow:   c.Overwrite,
 		}
 		if c.Export {
-			dat.name = misc.ExportName(path)
+			dat.name = cmnt.ExportName(path)
 			if c.save(dat) {
 				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
 				c.saved++
@@ -358,7 +359,7 @@ func (c *Config) Status() string {
 // init initialise the Config maps.
 func (c *Config) init() {
 	if c.exports == nil {
-		c.exports = make(misc.Export)
+		c.exports = make(cmnt.Export)
 	}
 	if c.hashes == nil {
 		c.hashes = make(hash)

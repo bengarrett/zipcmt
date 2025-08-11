@@ -1,4 +1,4 @@
-package misc
+package cmnt
 
 import (
 	"fmt"
@@ -44,11 +44,15 @@ func (e Export) Find(name string) string {
 	}
 	i := 0
 	const maximum = 9999
+	const req = 1
 	for {
 		i++
 		ext := filepath.Ext(name)
 		base := strings.TrimSuffix(name, ext)
 		a := strings.Split(base, "_")
+		if len(a) < req {
+			break
+		}
 		n, err := strconv.Atoi(a[len(a)-1])
 		if err == nil {
 			i = n
