@@ -15,80 +15,45 @@ https://user-images.githubusercontent.com/513842/120908127-a7fc4580-c6aa-11eb-8a
 
 ## Downloads
 
-zipcmt is a standalone (portable) terminal application and doesn't require installation.
+[Numerous downloads are available](https://github.com/bengarrett/zipcmt/releases/latest/) for 
+[Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_windows.zip),
+[Apple](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_apple_silicon.gz),
+[Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_linux.gz) and more.
 
-[Windows](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Windows_Intel.zip), 
-[macOS](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_macOS.tar.gz), 
-[FreeBSD](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_FreeBSD_Intel.tar.gz
-), 
-[Linux](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_amd64.tar.gz
-)
- and [Linux for ARM](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt_Linux_arm64.tar.gz
-)
+Plus Linux packages for 
+[Debian DEB](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.deb),
+[Fedora RPM](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm),
+[Arch ZST](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.tar.zst),
+[Alpine APK](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.apk).
 
-<small>Windows requires Windows 10 or newer, [users of Windows 7 and 8 can use zipcmt v1.3.10](https://github.com/bengarrett/zipcmt/releases/download/v1.3.10/zipcmt_Windows_Intel.zip).</small>
+There is also a [legacy edition that works](https://github.com/bengarrett/zipcmt/releases/download/v1.3.10/zipcmt_Windows_Intel.zip) on Windows 7 and 8.
 
-### Packages
-
-[APK (Alpine package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.apk)
-```sh
-wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.apk
-apk add zipcmt.apk
-```
-
-[DEB (Debian package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.deb)
-```sh
-wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.deb
-dpkg -i zipcmt.deb
-```
-
-[RPM (Red Hat package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm)
-```sh
-wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.rpm
-rpm -i zipcmt.rpm
-```
-
-[ZST (Arch Linux package)](https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.tar.zst)
-```sh
-wget https://github.com/bengarrett/zipcmt/releases/latest/download/zipcmt.pkg.tar.zst
-pacman -U zipcmt.pkg.tar.zst
-```
-
-## macOS unverified developer
-
-Unfortunately, newer macOS versions do not permit the running of unsigned terminal applications out of the box. But there is a workaround.
-
-In System Settings, Privacy & Security, Security, toggle **Allow applications downloaded from App store and identified developers**.
-
-1. Use Finder to extract the download for macOS, `zipcmt_macOS.tar.tar.gz`
-2. Use Finder to select the extracted `zipcmt` binary.
-3. <kbd>^</kbd> control-click the binary and choose _Open_.
-4. macOS will ask if you are sure you want to open it.
-5. Confirm by choosing _Open_, which will open a terminal and run the program.
-6. After this one-time confirmation, you can run this program within the terminal.
-
-
-## Windows Performance
-
-It is highly encouraged that Windows users temporarily disable **Virus & threat protection, Real-time protection**, or [create **Windows Security Exclusion**s](https://support.microsoft.com/en-us/windows/add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26) for the folders to be scanned before running `zipcmt`. Otherwise, the hit to performance is amazingly stark!
+The download is a gzip compressed binary that is a standalone terminal application. 
+Windows users can use File Explorer to decompress it.
 
 ```
-zipcmt -noprint 'C:\examples\'
+# replace 'foo' with the remainder of the filename
+$ gzip -d zipcmt_foo.gz
+
+# after decompression, to confirm the download and version
+$ zipcmt -v
 ```
 
-This is the time taken with the default Microsoft Defender settings.
+Before use, macOS users will need to delete the 'quarantine' extended attribute that is applied to all 
+program downloads that are not notarized for a fee by Apple.
 
-> Scanned 11331 zip archives and found 412 unique comments, taking 1m38.9398945s
+```
+$ xattr -d com.apple.quarantine zipcmt
+```
 
-**1 minute and 38 seconds** to scan 11,000 zip archives.
+#### Windows Performance
 
----
+The out of the box performance on Windows is poor due to the Microsoft Defender Antivirus real-time protection.
+For a scan of 10,000 zip files should take one or two seconds, but with the real-time protection active it will take one or two minutes!
+To fix this either,
 
-This is the expected performance on an SSD with a Windows Security Exclusion in place.
-
-> Scanned 11331 zip archives and found 412 unique comments, taking 1.593534s
-
-**1.6 seconds** to scan the same 11,000 zip archives!
+- Temporarily disable **Virus & threat protection, Real-time protection** in Windows Security
+- [Create **Windows Security Exclusion**s](https://support.microsoft.com/en-us/windows/add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26) for the folders to be scanned before running zipcmt
 
 ## Usage
 
@@ -97,7 +62,7 @@ This is the expected performance on an SSD with a Windows Security Exclusion in 
 ## Example usage
 #### Scan and print the comments
 ```sh
-zipcmt test/
+$ zipcmt test/
 
 #  ── test/test-with-comment.zip ───────────┐
 #    This is an example test comment for zipcmt.
@@ -107,21 +72,21 @@ zipcmt test/
 
 #### Only print the comments
 ```sh
-zipcmt --quiet test/
+$ zipcmt --quiet test/
 
 #   This is an example test comment for zipcmt.
 ```
 
 #### Scan and save the comments
 
-Linux, macOS, etc.
+Linux, Apple...
 
 ```sh
-zipcmt --noprint --save=~ test/
+$ zipcmt --noprint --save=~ test/
 
 # Scanned 4 zip archives and found 1 unique comment
 
-cat ~/test-with-comment-zipcomment.txt
+$ cat ~/test-with-comment-zipcomment.txt
 
 #   This is an example test comment for zipcmt.
 ```
@@ -129,37 +94,13 @@ cat ~/test-with-comment-zipcomment.txt
 Windows PowerShell
 
 ```powershell
-zipcmt.exe --noprint --save='C:\Users\Ben\Documents' .\test\
+$ zipcmt.exe --noprint --save='C:\Users\Ben\Documents' .\test\
 
 # Scanned 4 zip archives and found 1 unique comment
 
-cat 'C:\Users\Ben\Documents\test-with-comment-zipcomment.txt'
+$ type 'C:\Users\Ben\Documents\test-with-comment-zipcomment.txt'
 
 #   This is an example test comment for zipcmt.
-```
-
-## Build
-
-[Go](https://golang.org/doc/install) supports dozens of architectures and operating systems letting zipcmt to [be built for most platforms](https://golang.org/doc/install/source#environment).
-
-```sh
-# clone this repo
-git clone git@github.com:bengarrett/zipcmt.git
-
-# access the repo
-cd zipcmt
-
-# target and build the app for the host system
-go build
-
-# target and build for Windows 10, 32-bit
-env GOOS=windows GOARCH=386 go build
-
-# target and build for OpenBSD
-env GOOS=openbsd GOARCH=amd64 go build
-
-# target and build for Linux on MIPS CPUs
-env GOOS=linux GOARCH=mips64 go build
 ```
 
 ## Usages online
