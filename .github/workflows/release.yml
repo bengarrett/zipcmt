@@ -48,6 +48,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: main
+          persist-credentials: false
       - name: Update Homebrew formula
         run: |
           # For manual triggers, use the specified version or latest tag
@@ -99,3 +100,4 @@ jobs:
           branch: "update-formula-v${VERSION}"
           base: "main"
           delete-branch: true
+          push-to-fork: bengarrett/zipcmt
