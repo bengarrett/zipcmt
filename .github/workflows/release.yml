@@ -90,19 +90,39 @@ jobs:
             echo "Formula already up-to-date"
             exit 0
           fi
-      - name: Set up Git
+      - name: Create Pull Request using GitHub API
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.force_update == 'true'
         run: |
+          # Get the current date for the branch name
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          BRANCH_NAME="update-formula-v${VERSION}-${TIMESTAMP}"
+          
+          # Create a new branch
+          git checkout -b ${BRANCH_NAME}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Create Pull Request
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.force_update == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "ci: bump Homebrew formula to v${VERSION}"
-          title: "ci: bump Homebrew formula to v${VERSION}"
-          body: "Automated update of Homebrew formula for version v${VERSION}"
-          branch: "update-formula-v${VERSION}"
-          base: "main"
-          delete-branch: true
+          git add Formula/namzd.rb
+          git commit -m "ci: bump Homebrew formula to v${VERSION}"
+          
+          # Push the branch using the GitHub token
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bengarrett/zipcmt.git
+          git push origin ${BRANCH_NAME}
+          
+          # Create a pull request using the GitHub API
+          PR_DATA=$(jq -n \
+            --arg title "ci: bump Homebrew formula to v${VERSION}" \
+            --arg body "Automated update of Homebrew formula for version v${VERSION}" \
+            --arg head ${BRANCH_NAME} \
+            --arg base "main" \
+            '{
+              "title": $title,
+              "body": $body,
+              "head": $head,
+              "base": $base
+            }')
+          
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/bengarrett/zipcmt/pulls \
+            -d "${PR_DATA}"
