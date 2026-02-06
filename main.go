@@ -140,16 +140,19 @@ func helpPosix(w io.Writer) {
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprint(w, color.Info.Sprint("    zipcmt .\t\t\t\t"))
 	fmt.Fprintln(w,
-		color.Note.Sprint("# scan the current directory and subdirectories for unique comments"))
-	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -save=~%swork ~%sDownloads\t", ps, ps))
+		color.Note.Sprint("# Basic scan (current directory)"))
+	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -save=/comments ~%sDownloads\t", ps))
 	fmt.Fprintln(w,
-		color.Note.Sprint("# scan the user downloads directory, then save unique comments to a directory"))
-	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -a -s=~%swork ~%sDownloads\t", ps, ps))
+		color.Note.Sprint("# Save comments from downloads"))
+	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -quiet -raw /archive\t\t"))
 	fmt.Fprintln(w,
-		color.Note.Sprint("# scan the user downloads directory, then save all comments to a directory"))
-	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -quiet %s | less\t\t", ps))
+		color.Note.Sprint("# Fast scan, original encoding"))
+	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -a -norecursive ./project\t"))
 	fmt.Fprintln(w,
-		color.Note.Sprint("# scan the whole system to view the unique comments in a page reader"))
+		color.Note.Sprint("# Show all comments (no subdirs)"))
+	fmt.Fprint(w, color.Info.Sprintf("    zipcmt -quiet %s | grep pattern\t", ps))
+	fmt.Fprintln(w,
+		color.Note.Sprint("# Pipe and filter results"))
 }
 
 func helpWin(w io.Writer) {
@@ -187,6 +190,12 @@ func help(w io.Writer, logo bool) {
 	} else {
 		helpPosix(w)
 	}
+	fmt.Fprintln(w, "\nTips:")
+	optimial(w)
+	fmt.Fprintf(w, "     • Texts are saved as modern UTF-8.\n       If they look broken, use -raw for the originals.\n")
+	fmt.Fprintf(w, "     • Use -quiet for large directories to reduce output\n")
+	fmt.Fprintf(w, "     • -norecursive is much faster for flat directories\n")
+	fmt.Fprintf(w, "     • -export may clutter your source directories\n")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Options:")
 	const padding = 4
@@ -202,7 +211,6 @@ func help(w io.Writer, logo bool) {
 		}
 		helper(tw, f, name)
 	}
-	optimial(tw)
 	tw.Flush()
 }
 
@@ -212,41 +220,35 @@ func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
 	}
 	switch name {
 	case "save":
-		fmt.Fprintf(tw, "    -%v, -%v=DIRECTORY\t%v\n", "s", f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v, -%v=DIRECTORY\t%v\n", "s", "save", "save comments to directory")
 	case "overwrite":
-		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "o", "overwrite", "overwrite existing files")
 	case "noprint":
 		fmt.Fprintf(tw, "    -p, -%v\t%v\n", "noprint", "suppress comment output (faster for large scans)")
 	case "norecursive":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", "norecursive", "no subdirectory traversal")
 	case "all":
-		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "a", "all", "show all duplicates")
 	case "now":
-		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v\t%v\n", "now", "don't preserve dates")
 	case "raw":
-		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
-		fmt.Fprintln(tw, "                \t")
+		fmt.Fprintf(tw, "    -%v\t%v\n", "raw", "use original encoding")
 	case "export":
-		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
-		fmt.Fprintln(tw, "                \t")
+		fmt.Fprintf(tw, "    -%v\t%v\n", "export", "save alongside files")
 	case "quiet":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "q", "quiet", "quiet mode (errors only)")
 	case "version":
-		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
-		fmt.Fprintln(tw, "    -h, -help\tshow this list of options")
-		fmt.Fprintln(tw)
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "v", "version", "show version")
+		fmt.Fprintln(tw, "    -h, -help\tshow help")
 	}
 }
 
-func optimial(tw *tabwriter.Writer) {
-	if runtime.GOOS != winOS || tw == nil {
+func optimial(w io.Writer) {
+	if runtime.GOOS != winOS || w == nil {
 		return
 	}
-	fmt.Fprintln(tw, "For optimal performance Windows users may wish to temporarily disable"+
-		" the Virus & threat 'Real-time protection' under Windows Security.")
-	fmt.Fprintln(tw, "Or create Windows Security Exclusions for the directories to be scanned.")
-	fmt.Fprintln(tw, "https://support.microsoft.com/en-us/windows/"+
-		"add-an-exclusion-to-windows-security-811816c0-4dfd-af4a-47e4-c301afe13b26")
+	fmt.Fprintf(w, "     • Windows 'Real-time protection' dramatically reduces performance.\n")
+	fmt.Fprintln(w, "       For large scans you may wish to temporary disable it.")
 }
 
 // Info prints out the program information and version.
@@ -255,7 +257,7 @@ func info(w io.Writer, quiet *bool) {
 	if !*quiet {
 		fmt.Fprintln(w, brand)
 	}
-	fmt.Fprintf(w, "zipcmt v%s\n%s 2021-25 Ben Garrett, logo by sensenstahl\n",
+	fmt.Fprintf(w, "zipcmt v%s\n%s 2021-26 Ben Garrett, logo by sensenstahl\n",
 		version, copyright)
 	fmt.Fprintf(w, "https://github.com/bengarrett/zipcmt\n\n")
 	fmt.Fprintf(w, "build: %s (%s)\n", commit, date)
