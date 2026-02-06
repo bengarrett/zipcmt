@@ -64,7 +64,7 @@ jobs:
             fi
             COMMIT=$(git rev-parse HEAD)
             BUILD_DATE=$(git log -1 --format=%aI "${COMMIT}")
-            TAR_URL="https://github.com/bengarrett/namzd/archive/refs/tags/v${VERSION}.tar.gz"
+            TAR_URL="https://github.com/bengarrett/zipcmt/archive/refs/tags/v${VERSION}.tar.gz"
             SHA=$(curl -L "${TAR_URL}" | sha256sum | awk '{print $1}')
           else
             # For automatic tag-based triggers
@@ -72,21 +72,21 @@ jobs:
             VERSION=${VERSION#v}
             COMMIT=${{ github.sha }}
             BUILD_DATE=$(git log -1 --format=%aI "${COMMIT}")
-            TAR_URL="https://github.com/bengarrett/namzd/archive/refs/tags/v${VERSION}.tar.gz"
+            TAR_URL="https://github.com/bengarrett/zipcmt/archive/refs/tags/v${VERSION}.tar.gz"
             SHA=$(curl -L "${TAR_URL}" | sha256sum | awk '{print $1}')
           fi
 
           # Update the formula using sed
-          sed -i "s|^  url \".*\"$|  url \"${TAR_URL}\"|" Formula/namzd.rb
-          sed -i "s|^  sha256 \".*\"$|  sha256 \"${SHA}\"|" Formula/namzd.rb
-          sed -i "s|^  version \".*\"$|  version \"${VERSION}\"|" Formula/namzd.rb
-          sed -i "s|^  @commit = \".*\"$|  @commit = \"${COMMIT}\"|" Formula/namzd.rb
-          sed -i "s|^  @build_date = \".*\"$|  @build_date = \"${BUILD_DATE}\"|" Formula/namzd.rb
+          sed -i "s|^  url \".*\"$|  url \"${TAR_URL}\"|" Formula/zipcmt.rb
+          sed -i "s|^  sha256 \".*\"$|  sha256 \"${SHA}\"|" Formula/zipcmt.rb
+          sed -i "s|^  version \".*\"$|  version \"${VERSION}\"|" Formula/zipcmt.rb
+          sed -i "s|^  @commit = \".*\"$|  @commit = \"${COMMIT}\"|" Formula/zipcmt.rb
+          sed -i "s|^  @build_date = \".*\"$|  @build_date = \"${BUILD_DATE}\"|" Formula/zipcmt.rb
 
           # Check if formula is already up-to-date, unless force_update is true
           if [ "${{ github.event.inputs.force_update }}" = "true" ]; then
             echo "Force update enabled - proceeding with pull request"
-          elif git diff --quiet Formula/namzd.rb; then
+          elif git diff --quiet Formula/zipcmt.rb; then
             echo "Formula already up-to-date"
             exit 0
           fi
@@ -101,7 +101,7 @@ jobs:
           git checkout -b ${BRANCH_NAME}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/namzd.rb
+          git add Formula/zipcmt.rb
           git commit -m "ci: bump Homebrew formula to v${VERSION}"
           
           # Push the branch using the GitHub token

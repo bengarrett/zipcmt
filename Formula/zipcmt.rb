@@ -1,7 +1,7 @@
-class Namzd < Formula
+class Zipcmt < Formula
   desc "Zip Comment, the file comment viewer and extractor"
   homepage "https://github.com/bengarrett/zipcmt"
-  url "https://github.com/bengarrett/namzd/archive/refs/tags/v1.4.6.tar.gz"
+  url "https://github.com/bengarrett/zipcmt/archive/refs/tags/v1.4.6.tar.gz"
   sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
   version "1.4.6"
   license "LGPL-3.0-only"
@@ -21,6 +21,6 @@ class Namzd < Formula
   end
 
   test do
-    assert_match "namzd", shell_output("#{bin}/namzd --version")
+    assert_match "zipcmt", shell_output("#{bin}/zipcmt --version")
   end
 end
