@@ -51,7 +51,7 @@ $ xattr -d com.apple.quarantine zipcmt
 macOS and Linux users can install via Homebrew:
 
 ```bash
-brew tap bengarrett/namzd https://github.com/bengarrett/zipcmt
+brew tap bengarrett/zipcmt https://github.com/bengarrett/zipcmt
 brew install bengarrett/zipcmt/zipcmt
 ```
 
@@ -123,3 +123,4 @@ $ type 'C:\Users\Ben\Documents\test-with-comment-zipcomment.txt'
 Reddit user [Iron_Slug](https://www.reddit.com/user/Iron_Slug/) in [r/bbs](https://www.reddit.com/r/bbs/) created a [huge online collection of BBS ads](https://www.ipingthereforeiam.com/bbs/gallery/zip/), many of which were captured using zipcmt.
 
 The website Defacto2 has [a large collection of uncurated BBS ads](https://defacto2.net/f/b428b6e) also captured using zipcmt.
+
