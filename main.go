@@ -216,10 +216,9 @@ func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
 	case "overwrite":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	case "noprint":
-		fmt.Fprintf(tw, "    -p, -%v\t%v\n", f.Name, f.Usage)
-		fmt.Fprintln(tw, "                \t")
+		fmt.Fprintf(tw, "    -p, -%v\t%v\n", "noprint", "suppress comment output (faster for large scans)")
 	case "norecursive":
-		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", "norecursive", "no subdirectory traversal")
 	case "all":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 	case "now":
@@ -231,7 +230,7 @@ func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
 		fmt.Fprintf(tw, "        -%v\t%v\n", f.Name, f.Usage)
 		fmt.Fprintln(tw, "                \t")
 	case "quiet":
-		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "q", "quiet", "quiet mode (errors only)")
 	case "version":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", f.Name[:1], f.Name, f.Usage)
 		fmt.Fprintln(tw, "    -h, -help\tshow this list of options")
