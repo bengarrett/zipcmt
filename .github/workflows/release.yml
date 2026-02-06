@@ -81,15 +81,21 @@ jobs:
           sed -i "s|^  @commit = \".*\"$|  @commit = \"${COMMIT}\"|" Formula/namzd.rb
           sed -i "s|^  @build_date = \".*\"$|  @build_date = \"${BUILD_DATE}\"|" Formula/namzd.rb
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/namzd.rb
           # Check if formula is already up-to-date, unless force_update is true
           if [ "${{ github.event.inputs.force_update }}" = "true" ]; then
-            echo "Force update enabled - proceeding with commit"
-          elif git diff --cached --quiet; then
+            echo "Force update enabled - proceeding with pull request"
+          elif git diff --quiet Formula/namzd.rb; then
             echo "Formula already up-to-date"
             exit 0
           fi
-          git commit -m "ci: bump Homebrew formula to v${VERSION}"
-          git push origin main
+      - name: Create Pull Request
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.force_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "ci: bump Homebrew formula to v${VERSION}"
+          title: "ci: bump Homebrew formula to v${VERSION}"
+          body: "Automated update of Homebrew formula for version v${VERSION}"
+          branch: "update-formula-v${VERSION}"
+          base: "main"
+          delete-branch: true
