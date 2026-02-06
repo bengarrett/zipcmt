@@ -1,13 +1,13 @@
 class Namzd < Formula
   desc "Zip Comment, the file comment viewer and extractor"
   homepage "https://github.com/bengarrett/zipcmt"
-  url "https://github.com/bengarrett/zipcmt/archive/refs/tags/v1.4.5.tar.gz"
-  sha256 "17446067087fafdbfdcf207bd3d1b52d1f872e736f6a7c05b2666018b08bb582"
-  version "1.4.5"
+  url "https://github.com/bengarrett/namzd/archive/refs/tags/v1.4.6.tar.gz"
+  sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
+  version "1.4.6"
   license "LGPL-3.0-only"
 
-  @commit = "b647d43e354131b5c17f7d6fc3696f2833f990a4"
-  @build_date = "2026-02-06T12:11:20+11:00"
+  @commit = "4bb4c718fb9825efb22539b9311165837faacddc"
+  @build_date = "2026-02-06T20:58:46+11:00"
 
   livecheck do
     url :stable
