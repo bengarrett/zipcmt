@@ -46,6 +46,21 @@ program downloads that are not notarized for a fee by Apple.
 $ xattr -d com.apple.quarantine zipcmt
 ```
 
+#### Homebrew
+
+macOS and Linux users can install via Homebrew:
+
+```bash
+brew tap bengarrett/namzd https://github.com/bengarrett/zipcmt
+brew install bengarrett/zipcmt/zipcmt
+```
+
+Update to the latest version with:
+
+```bash
+brew upgrade bengarrett/zipcmt/zipcmt
+```
+
 #### Windows Performance
 
 The out of the box performance on Windows is poor due to the Microsoft Defender Antivirus real-time protection.
