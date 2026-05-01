@@ -2,7 +2,7 @@ name: GoReleaser
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.25.6"
+          go-version: '1.26.2'
           cache: true
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -96,18 +96,18 @@ jobs:
           # Get the current date for the branch name
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           BRANCH_NAME="update-formula-v${VERSION}-${TIMESTAMP}"
-          
+
           # Create a new branch
           git checkout -b ${BRANCH_NAME}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/zipcmt.rb
           git commit -m "ci: bump Homebrew formula to v${VERSION}"
-          
+
           # Push the branch using the GitHub token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bengarrett/zipcmt.git
           git push origin ${BRANCH_NAME}
-          
+
           # Create a pull request using the GitHub API
           PR_DATA=$(jq -n \
             --arg title "ci: bump Homebrew formula to v${VERSION}" \
@@ -120,7 +120,7 @@ jobs:
               "head": $head,
               "base": $base
             }')
-          
+
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
