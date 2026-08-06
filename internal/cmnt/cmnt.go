@@ -82,7 +82,8 @@ func ExportName(path string) string {
 func Self() (string, error) {
 	exe, err := os.Executable()
 	if err != nil {
-		return "", fmt.Errorf("self error: %w", err)
+		const format = "self error: %w"
+		return "", fmt.Errorf(format, err)
 	}
 	return exe, nil
 }

@@ -98,7 +98,8 @@ func main() {
 	// summaries
 	fmt.Fprintln(os.Stdout, configs.Status())
 	if s := configs.LogName(); s != "" {
-		fmt.Fprintf(os.Stdout, "%s %s\n", "The log is found at", color.Primary.Sprint(s))
+		const format = "%s %s\n"
+		fmt.Fprintf(os.Stdout, format, "The log is found at", color.Primary.Sprint(s))
 	}
 }
 

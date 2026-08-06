@@ -115,7 +115,8 @@ func Read(name string, raw bool) (string, error) {
 	if cmmt == "" {
 		return "", nil
 	}
-	if strings.HasPrefix(cmmt, "TORRENTZIPPED-") {
+	const prefix = "TORRENTZIPPED-"
+	if strings.HasPrefix(cmmt, prefix) {
 		return "", nil
 	}
 	if strings.TrimSpace(cmmt) == "" {
@@ -213,7 +214,7 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 		if c.Export {
 			dat.name = cmnt.ExportName(path)
 			if c.save(dat) {
-				c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
+				_ = c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
 				c.saved++
 			}
 		}
@@ -221,7 +222,7 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 			dat.name = c.exports.Unique(path, c.SaveName)
 			c.names += uint(len(dat.name))
 			if c.save(dat) {
-				c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
+				_ = c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
 					dat.name, humanize.Bytes(uint64(len(cmmt))), path))
 				c.saved++
 			}
@@ -238,9 +239,8 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 }
 
 func walkErrs(root string, err error) error {
-	var pathError *os.PathError
-	if errors.As(err, &pathError) {
-		if root != "" && root[:1] == "-" {
+	if _, ok := errors.AsType[*os.PathError](err); ok {
+		if strings.HasPrefix(root, "-") {
 			return fmt.Errorf("%w: %s", ErrFlag, root)
 		}
 	}
@@ -255,13 +255,15 @@ func walkErrs(root string, err error) error {
 		return fmt.Errorf("%w: %s, %s", ErrPerm, f.Mode(), root)
 	}
 	if err != nil {
-		return fmt.Errorf("walk directory: %s, %w %T", root, err, err.Error())
+		const format = "walk directory: %s, %w %T"
+		return fmt.Errorf(format, root, err, err.Error())
 	}
 	return nil
 }
 
 // Clean the syntax and check the usability of the SaveName directory path.
 func (c *Config) Clean() error {
+	const format = "%s: export %w"
 	name := c.SaveName
 	if name == "" {
 		return nil
@@ -271,25 +273,25 @@ func (c *Config) Clean() error {
 	if before == "~" {
 		dir, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("%s: export %w", name, err)
+			return fmt.Errorf(format, name, err)
 		}
 		name = strings.Replace(name, "~", dir, 1)
 	}
 	s, err := os.Stat(name)
 	if errors.Is(err, fs.ErrInvalid) {
-		return fmt.Errorf("%s: export %w", name, ErrValid)
+		return fmt.Errorf(format, name, ErrValid)
 	}
 	if errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("%s: export %w", name, ErrMissing)
+		return fmt.Errorf(format, name, ErrMissing)
 	}
 	if errors.Is(err, fs.ErrPermission) {
-		return fmt.Errorf("%s: export %w", name, ErrPerm)
+		return fmt.Errorf(format, name, ErrPerm)
 	}
 	if err != nil {
-		return fmt.Errorf("%s: export %w", name, err)
+		return fmt.Errorf(format, name, err)
 	}
 	if !s.IsDir() {
-		return fmt.Errorf("%s: export %w", name, ErrIsFile)
+		return fmt.Errorf(format, name, ErrIsFile)
 	}
 	c.SaveName = name
 	return nil
@@ -319,10 +321,10 @@ func (c *Config) Status() string {
 	if c.Log {
 		if c.SaveName != "" {
 			s := fmt.Sprintf("Saved %d comments from %d finds", c.saved, c.Cmmts)
-			c.WriteLog(s)
+			_ = c.WriteLog(s)
 		}
 		s := fmt.Sprintf("Scan finished, time taken: %s", c.Timer())
-		c.WriteLog(s)
+		_ = c.WriteLog(s)
 	}
 	if c.Quiet {
 		return ""
@@ -390,9 +392,10 @@ func (c *Config) save(dat save) bool {
 	if !dat.ow {
 		if s, err := os.Stat(dat.name); err == nil {
 			size := humanize.Bytes(uint64(s.Size())) //nolint:gosec
-			info := fmt.Sprintf("export skipped, file already exists: %s (%s)", dat.name, size)
+			const format = "export skipped, file already exists: %s (%s)"
+			info := fmt.Sprintf(format, dat.name, size)
 			color.Info.Tips(info)
-			c.WriteLog(fmt.Sprintf("SKIP (exists): %s (%s)", dat.name, size))
+			_ = c.WriteLog(fmt.Sprintf("SKIP (exists): %s (%s)", dat.name, size))
 			return false
 		}
 	}

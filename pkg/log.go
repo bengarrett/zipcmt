@@ -3,12 +3,14 @@
 package zipcmt
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -17,49 +19,66 @@ import (
 	gap "github.com/muesli/go-app-paths"
 )
 
+var ErrLog = errors.New("log name not set")
+
 // Error saves the error to either a new or append an existing log file.
 func (c *Config) Error(err error) {
+	const format = "ERROR: %s"
 	if err == nil {
 		return
 	}
 	color.Error.Tips(fmt.Sprint(err))
-	c.WriteLog(fmt.Sprintf("ERROR: %s", err))
+	if err := c.WriteLog(fmt.Sprintf(format, err)); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // WriteLog saves the string to an appended or new log file.
-func (c *Config) WriteLog(s string) {
+func (c *Config) WriteLog(s string) error {
 	if !c.Log || s == "" {
-		return
+		return nil
 	}
 
+	const format = "%s log file: %w"
 	if c.LogName() == "" {
 		c.SetLog()
-		d := filepath.Dir(c.LogName())
-		_, err := os.Stat(d)
-		if os.IsNotExist(err) {
-			const perm = 0o755
-			if err := os.MkdirAll(d, perm); err != nil {
-				log.Fatalln(err)
-			}
-		}
+	}
+	logPath := c.LogName()
+	if logPath == "" {
+		return fmt.Errorf(format, "", ErrLog)
 	}
 
-	const perm = 0o644
-	out, err1 := os.OpenFile(c.LogName(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
-	if err1 != nil {
-		log.Fatalln(err1)
+	dir := filepath.Dir(logPath)
+	const dPerm = 0o755
+	if err := os.MkdirAll(dir, dPerm); err != nil {
+		return fmt.Errorf(format, "make directory", err)
 	}
 
-	logger := log.New(out, "zipcmt|", log.LstdFlags)
-	st, err2 := out.Stat()
-	if err2 != nil {
-		out.Close()
-		log.Fatalln(err2)
+	flags := os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	const fPerm = 0o644
+	out, err := os.OpenFile(logPath, flags, fPerm)
+	if err != nil {
+		return fmt.Errorf(format, "open", err)
 	}
 	defer out.Close()
+
+	st, err := out.Stat()
+	if err != nil {
+		return fmt.Errorf(format, "stat", err)
+	}
+	logger := log.New(out, "zipcmt|", log.LstdFlags)
 	if st.Size() == 0 {
 		c.logHeader(logger)
 	}
+
+	var buf strings.Builder
+	fmt.Fprintf(&buf, "zip#: %07d; cmmt#: %07d; ", c.Zips, c.Cmmts)
+	if !c.Dupes {
+		const hashLen = 32
+		bytes := uint64(len(c.hashes)) * uint64(hashLen)
+		fmt.Fprintf(&buf, "hashes: %s; ", humanize.Bytes(bytes))
+	}
+
 	l := fmt.Sprintf("zip#: %07d; cmmt#: %07d; ", c.Zips, c.Cmmts)
 	if !c.Dupes {
 		const hashLen = 32
@@ -71,6 +90,7 @@ func (c *Config) WriteLog(s string) {
 	}
 	l += s + "\n"
 	logger.Print(l)
+	return nil
 }
 
 // logHeader creates a header for new log files that lists all the values of Config.
@@ -83,8 +103,9 @@ func (c *Config) logHeader(logger *log.Logger) {
 	// see: https://scene-si.org/2017/12/21/introduction-to-reflection/
 	v := reflect.ValueOf(c).Elem()
 	t := v.Type()
+	const format = "%02d. %s:\t\t%v\n"
 	for i := range v.NumField() {
-		fmt.Fprintf(w, "%02d. %s:\t\t%v\n", i+1, t.Field(i).Name, v.Field(i))
+		fmt.Fprintf(w, format, i+1, t.Field(i).Name, v.Field(i))
 		if t.Field(i).Name == "test" {
 			break
 		}
@@ -100,7 +121,7 @@ func logName() string {
 	if err != nil {
 		dir, err2 := os.UserHomeDir()
 		if err2 != nil {
-			log.Fatalln(fmt.Errorf("logName UserHomeDir: %w", err2))
+			log.Fatalln(fmt.Errorf("log name user home dir: %w", err2))
 		}
 		name = path.Join(dir, filename)
 	}
