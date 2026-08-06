@@ -1,8 +1,9 @@
-version: "2"
+version: '2'
 linters:
   default: all
   disable:
     - depguard
+    - gomodguard
     - nlreturn
     - noinlineerr
     - paralleltest
