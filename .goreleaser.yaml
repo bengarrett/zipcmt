@@ -40,8 +40,8 @@ archives:
         formats: ['zip']
 nfpms:
   - id: Linux
-    package_name: "zipcmt"
-    file_name_template: "zipcmt"
+    package_name: 'zipcmt'
+    file_name_template: 'zipcmt'
     vendor: Ben Garrett.
     homepage: https://github.com/bengarrett/zipcmt
     maintainer: Ben Garrett <code.by.ben@gmail.com>
@@ -56,8 +56,8 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - "^docs:"
-      - "^test:"
+      - '^docs:'
+      - '^test:'
 upx:
   - enabled: false
 release:
