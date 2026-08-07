@@ -1,13 +1,13 @@
 class Zipcmt < Formula
   desc "Zip Comment, the file comment viewer and extractor"
   homepage "https://github.com/bengarrett/zipcmt"
-  url "https://github.com/bengarrett/zipcmt/archive/refs/tags/v1.4.6.tar.gz"
-  sha256 "dd9a87cb219b7a64bc9ea288a607681b8766957093136b6a0871f86edbb8b0d3"
-  version "1.4.7"
+  url "https://github.com/bengarrett/zipcmt/archive/refs/tags/v1.4.8.tar.gz"
+  sha256 "f143d4c6db95692f8e5f9b24d0b9fcbccc4656e0863f0d96b9b50d9d343c5ff9"
+  version "1.4.8"
   license "LGPL-3.0-only"
 
-  @commit = "4bb4c718fb9825efb22539b9311165837faacddc"
-  @build_date = "2026-02-06T20:58:46+11:00"
+  @commit = "ee925b236398543ab62b43560e2a0d0baf78a171"
+  @build_date = "2026-08-07T22:45:40+10:00"
 
   livecheck do
     url :stable
