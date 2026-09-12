@@ -1,5 +1,6 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
+//nolint:exhaustruct_v5
 package zipcmt_test
 
 import (
@@ -11,6 +12,7 @@ import (
 )
 
 func TestConfig_Clean(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		SaveName  string
 		Export    bool
@@ -35,6 +37,8 @@ func TestConfig_Clean(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
@@ -54,6 +58,7 @@ func TestConfig_Clean(t *testing.T) {
 }
 
 func Test_Read(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Save      string
 		Export    bool
@@ -77,6 +82,8 @@ func Test_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			gotCmmt, err := zipcmt.Read(tt.fname, tt.fields.Raw)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
@@ -90,6 +97,7 @@ func Test_Read(t *testing.T) {
 }
 
 func TestConfig_Scans(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		SaveName  string
 		Export    bool
@@ -114,6 +122,8 @@ func TestConfig_Scans(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
@@ -133,6 +143,7 @@ func TestConfig_Scans(t *testing.T) {
 }
 
 func TestConfig_separator(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		SaveName  string
 		Export    bool
@@ -156,6 +167,8 @@ func TestConfig_separator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
@@ -175,6 +188,7 @@ func TestConfig_separator(t *testing.T) {
 }
 
 func TestConfig_Status(t *testing.T) {
+	t.Parallel()
 	color.Enable = false
 	type fields struct {
 		SaveName  string
@@ -198,6 +212,8 @@ func TestConfig_Status(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := zipcmt.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,

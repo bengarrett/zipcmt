@@ -1,8 +1,9 @@
 //go:build !windows
 
-// © Ben Garrett https://github.com/bengarrett/zipcmt
-
+//nolint:exhaustruct_v5
 package zipcmt_test
+
+// © Ben Garrett https://github.com/bengarrett/zipcmt
 
 import (
 	"fmt"

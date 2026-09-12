@@ -9,6 +9,8 @@ import (
 )
 
 func TestExportName(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		path string
@@ -21,6 +23,8 @@ func TestExportName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := cmnt.ExportName(tt.path); got != tt.want {
 				t.Errorf("ExportName() = %v, want %v", got, tt.want)
 			}
@@ -29,6 +33,8 @@ func TestExportName(t *testing.T) {
 }
 
 func TestExportFind(t *testing.T) {
+	t.Parallel()
+
 	files := cmnt.Export{
 		"file.txt":   true,
 		"file_1.txt": true,
@@ -50,6 +56,8 @@ func TestExportFind(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.e.Find(tt.fname); got != tt.want {
 				t.Errorf("ExportFind() = %v, want %v", got, tt.want)
 			}
@@ -58,6 +66,7 @@ func TestExportFind(t *testing.T) {
 }
 
 func TestSelf(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		wantErr bool
@@ -66,6 +75,8 @@ func TestSelf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := cmnt.Self()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Self() error = %v, wantErr %v", err, tt.wantErr)
@@ -76,6 +87,7 @@ func TestSelf(t *testing.T) {
 }
 
 func TestValid(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		fname string
@@ -88,6 +100,8 @@ func TestValid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := cmnt.Valid(tt.fname); got != tt.want {
 				t.Errorf("Valid() = %v, want %v", got, tt.want)
 			}
@@ -97,6 +111,7 @@ func TestValid(t *testing.T) {
 
 //nolint:funlen
 func TestExport_Unique(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		existing     cmnt.Export
@@ -133,6 +148,8 @@ func TestExport_Unique(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Make a copy of the original existing map for comparison
 			originalExisting := make(cmnt.Export, len(tt.existing))
 			maps.Copy(originalExisting, tt.existing)

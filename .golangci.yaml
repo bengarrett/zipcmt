@@ -2,18 +2,31 @@ version: '2'
 linters:
   default: all
   disable:
-    - depguard
-    - gomodguard
     - nlreturn
     - noinlineerr
-    - paralleltest
-    - wsl
     - wsl_v5
+    # retired
+    - exhaustruct
+    - gomodguard
+    - wsl
   settings:
     cyclop:
       max-complexity: 15
     varnamelen:
       min-name-length: 1
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - 'golang.org/x/text'
+            - 'github.com/nalgeon/be'
+            - 'github.com/bengarrett/zipcmt'
+            - 'github.com/bengarrett/retrotxtgo'
+            - 'github.com/bengarrett/sauce'
+            - 'github.com/dustin/go-humanize'
+            - 'github.com/gookit/color'
+            - 'github.com/muesli/go-app-paths'
   exclusions:
     generated: lax
     presets:
