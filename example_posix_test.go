@@ -1,7 +1,7 @@
 //go:build !windows
 
 //nolint:exhaustruct_v5
-package zipcmt_test
+package main_test
 
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
@@ -10,32 +10,32 @@ import (
 	"log"
 	"os"
 
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
+	"github.com/bengarrett/zipcmt/app"
 )
 
 func ExampleConfig_Clean() {
-	c := zipcmt.Config{
-		SaveName: "..//test///.",
+	c := app.Config{
+		SaveName: "testdata///.",
 	}
 	if err := c.Clean(); err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Fprint(os.Stdout, c.SaveName)
-	// Output: ../test
+	// Output: testdata
 }
 
 func ExampleConfig_WalkDir() {
-	c := zipcmt.Config{
+	c := app.Config{
 		Print: true,
 		Dupes: true,
 	}
-	if err := c.WalkDir("../test"); err != nil {
+	if err := c.WalkDir("testdata"); err != nil {
 		log.Panicln(err)
 	}
 	// Output:
-	// ── ../test/subdir/test-with-comment.zip ─┐
+	// ── testdata/subdir/test-with-comment.zip
 	//    This is an example test comment for zipcmmt.[0m
 	//
-	//  ── ../test/test-with-comment.zip ────────┐
+	//  ── testdata/test-with-comment.zip ───────┐
 	//    This is an example test comment for zipcmmt.[0m
 }

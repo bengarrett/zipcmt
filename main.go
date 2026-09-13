@@ -14,8 +14,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/bengarrett/zipcmt/app"
 	"github.com/bengarrett/zipcmt/internal/cmnt"
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
 	"github.com/gookit/color"
 )
 
@@ -32,7 +32,7 @@ const winOS = "windows"
 
 func main() {
 	const ellipsis = "\u2026"
-	var configs zipcmt.Config
+	var configs app.Config
 	var noprint bool
 	configs.SetTimer()
 	flag.BoolVar(&noprint, "noprint", false,

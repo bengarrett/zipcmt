@@ -1,5 +1,5 @@
-//nolint:exhaustruct_v5
-package zipcmt_test
+//nolint:exhaustruct_v5,testableexamples
+package main_test
 
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
+	"github.com/bengarrett/zipcmt/app"
 	"github.com/gookit/color"
 )
 
@@ -16,10 +17,10 @@ func init() {
 	color.Enable = false
 }
 
-func ExampleConfig() { //nolint: testableexamples
+func ExampleConfig() {
 	// print all comments found in the test directory
-	example := []string{"../test"}
-	a := zipcmt.Config{
+	example := []string{"testdata"}
+	a := app.Config{
 		Dirs:  example,
 		Dupes: true,
 		Print: true,
@@ -31,7 +32,7 @@ func ExampleConfig() { //nolint: testableexamples
 
 	// quietly scan and save only the unique comments as text files in the home directory
 	const homeDir = "~"
-	b := zipcmt.Config{
+	b := app.Config{
 		Dirs:     example,
 		SaveName: homeDir,
 		Quiet:    true,
@@ -42,7 +43,7 @@ func ExampleConfig() { //nolint: testableexamples
 	}
 
 	// quietly scan and count the unique comments
-	c := zipcmt.Config{
+	c := app.Config{
 		Dirs:  example,
 		Quiet: true,
 	}
@@ -51,7 +52,7 @@ func ExampleConfig() { //nolint: testableexamples
 }
 
 func ExampleRead() {
-	s, err := zipcmt.Read("../test/test-with-comment.zip", false)
+	s, err := app.Read(filepath.Join("testdata", "test-with-comment.zip"), false)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -62,18 +63,18 @@ func ExampleRead() {
 }
 
 func ExampleConfig_Status() {
-	c := zipcmt.Config{}
+	c := app.Config{}
 	c.SetTest()
-	if err := c.WalkDir("../test"); err != nil {
+	if err := c.WalkDir("testdata"); err != nil {
 		log.Panicln(err)
 	}
 	fmt.Fprint(os.Stdout, c.Status())
 
-	c = zipcmt.Config{
+	c = app.Config{
 		Dupes: true,
 	}
 	c.SetTest()
-	if err := c.WalkDir("../test"); err != nil {
+	if err := c.WalkDir("testdata"); err != nil {
 		log.Panicln(err)
 	}
 	fmt.Fprint(os.Stdout, c.Status())

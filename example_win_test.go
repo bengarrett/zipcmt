@@ -2,7 +2,7 @@
 
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-package zipcmt_test
+package main_test
 
 import (
 	"fmt"

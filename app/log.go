@@ -1,6 +1,6 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-package zipcmt
+package app
 
 import (
 	"errors"

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
+	"github.com/bengarrett/zipcmt/app"
 )
 
 // BenchmarkRead measures the performance of reading ZIP file comments.
@@ -19,7 +19,7 @@ func BenchmarkRead(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		_, err := zipcmt.Read(testZip, false)
+		_, err := app.Read(testZip, false)
 		if err != nil {
 			b.Fatalf("Read failed: %v", err)
 		}
@@ -33,7 +33,7 @@ func BenchmarkReadRaw(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		_, err := zipcmt.Read(testZip, true)
+		_, err := app.Read(testZip, true)
 		if err != nil {
 			b.Fatalf("Read failed: %v", err)
 		}
@@ -49,7 +49,7 @@ func BenchmarkWalkDir(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		config := &zipcmt.Config{
+		config := &app.Config{
 			Print: false,
 			Quiet: true,
 		}
@@ -67,7 +67,7 @@ func BenchmarkWalkDirWithDupes(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		config := &zipcmt.Config{
+		config := &app.Config{
 			Dupes: true,
 			Print: false,
 			Quiet: true,
@@ -86,7 +86,7 @@ func BenchmarkWalkDirNoWalk(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		config := &zipcmt.Config{
+		config := &app.Config{
 			NoWalk: true,
 			Print:  false,
 			Quiet:  true,
@@ -140,7 +140,7 @@ func BenchmarkLargeDirectory(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		config := &zipcmt.Config{
+		config := &app.Config{
 			Print: false,
 			Quiet: true,
 		}
@@ -169,7 +169,7 @@ func BenchmarkMixedComments(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		config := &zipcmt.Config{
+		config := &app.Config{
 			Print: false,
 			Quiet: true,
 		}

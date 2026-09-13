@@ -1,15 +1,22 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-//nolint:exhaustruct_v5
-package zipcmt_test
+//nolint:exhaustruct_v5,gochecknoglobals
+package app_test
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
+	"github.com/bengarrett/zipcmt/app"
 	"github.com/gookit/color"
 )
+
+var testdata = filepath.Join("..", "testdata")
+
+func testf(name string) string {
+	return filepath.Join(testdata, name)
+}
 
 func TestConfig_Clean(t *testing.T) {
 	t.Parallel()
@@ -31,15 +38,15 @@ func TestConfig_Clean(t *testing.T) {
 	}{
 		{"empty", fields{}, false},
 		{"missing", fields{SaveName: "/no/such/directory"}, true},
-		{"file", fields{SaveName: "../test/test.txt"}, true},
-		{"dir", fields{SaveName: "../test"}, false},
+		{"file", fields{SaveName: testf("test.txt")}, true},
+		{"dir", fields{SaveName: testdata}, false},
 		{"home", fields{SaveName: "~"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := &zipcmt.Config{
+			c := &app.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -77,14 +84,14 @@ func Test_Read(t *testing.T) {
 	}{
 		{"empty", fields{}, "", false, true},
 		{"bad file", fields{}, "../missing/no_such_files.zip", false, true},
-		{"no comment file", fields{}, "../test/test-no-comment.zip", false, false},
-		{"file with comment", fields{}, "../test/test-with-comment.zip", true, false},
+		{"no comment file", fields{}, testf("test-no-comment.zip"), false, false},
+		{"file with comment", fields{}, testf("test-with-comment.zip"), true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotCmmt, err := zipcmt.Read(tt.fname, tt.fields.Raw)
+			gotCmmt, err := app.Read(tt.fname, tt.fields.Raw)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -116,15 +123,15 @@ func TestConfig_Scans(t *testing.T) {
 		wantErr bool
 	}{
 		{"no root", fields{}, "", true},
-		{"bad root", fields{}, "../test/missing", true},
-		{"test dir", fields{Dupes: true}, "../test", false},
-		{"exportdir", fields{Dupes: true, SaveName: t.TempDir()}, "../test", false},
+		{"bad root", fields{}, filepath.Join(testdata, "missing"), true},
+		{"test dir", fields{Dupes: true}, testdata, false},
+		{"exportdir", fields{Dupes: true, SaveName: t.TempDir()}, testdata, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := &zipcmt.Config{
+			c := &app.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -169,7 +176,7 @@ func TestConfig_separator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := zipcmt.Config{
+			c := app.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,
@@ -214,7 +221,7 @@ func TestConfig_Status(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := zipcmt.Config{
+			c := app.Config{
 				SaveName:  tt.fields.SaveName,
 				Export:    tt.fields.Export,
 				Dupes:     tt.fields.Dupes,

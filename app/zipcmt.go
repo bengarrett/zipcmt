@@ -1,7 +1,7 @@
 // © Ben Garrett https://github.com/bengarrett/zipcmt
 
-// Package zipcmt is a viewer and an extractor of zip archive comments.
-package zipcmt
+// Package app is a viewer and an extractor of zip archive comments.
+package app
 
 import (
 	"archive/zip"
