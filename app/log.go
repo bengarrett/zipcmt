@@ -27,6 +27,7 @@ func (c *Config) Error(err error) {
 	if err == nil {
 		return
 	}
+
 	color.Error.Tips(fmt.Sprint(err))
 	if err := c.WriteLog(fmt.Sprintf(format, err)); err != nil {
 		log.Fatal(err)
@@ -90,6 +91,7 @@ func (c *Config) WriteLog(s string) error {
 	}
 	l += s + "\n"
 	logger.Print(l)
+
 	return nil
 }
 
@@ -125,5 +127,6 @@ func logName() string {
 		}
 		name = path.Join(dir, filename)
 	}
+
 	return name
 }

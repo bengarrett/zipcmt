@@ -22,14 +22,17 @@ const Filename = "-zipcomment.txt"
 func (e Export) Unique(zipPath, dest string) string {
 	base := filepath.Base(zipPath)
 	name := strings.TrimSuffix(base, filepath.Ext(base)) + Filename
+
 	if runtime.GOOS == "windows" {
 		name = strings.ToLower(name)
 	}
+
 	path := filepath.Join(dest, name)
 	if f := e.Find(path); f != path {
 		path = f
 	}
 	e[path] = true
+
 	return path
 }
 
@@ -42,6 +45,7 @@ func (e Export) Find(name string) string {
 	if !e[name] {
 		return name
 	}
+
 	i := 0
 	const maximum = 9999
 	const req = 1
@@ -53,20 +57,22 @@ func (e Export) Find(name string) string {
 		if len(a) < req {
 			break
 		}
+
 		n, err := strconv.Atoi(a[len(a)-1])
 		if err == nil {
 			i = n
 			base = strings.Join(a[0:len(a)-1], "_")
 		}
-		suf := fmt.Sprintf("_%d", i+1)
-		s := fmt.Sprintf("%s%s%s", base, suf, ext)
+		s := base + "_" + strconv.Itoa(i+1) + ext
 		if !e[s] {
 			return s
 		}
+
 		if i > maximum {
 			break
 		}
 	}
+
 	return ""
 }
 
@@ -75,6 +81,7 @@ func ExportName(path string) string {
 	if path == "" {
 		return ""
 	}
+
 	return strings.TrimSuffix(path, filepath.Ext(path)) + Filename
 }
 
@@ -85,11 +92,12 @@ func Self() (string, error) {
 		const format = "self error: %w"
 		return "", fmt.Errorf(format, err)
 	}
+
 	return exe, nil
 }
 
 // Valid checks that the named file is a known zip archive.
 func Valid(name string) bool {
-	const z = ".zip"
-	return filepath.Ext(strings.ToLower(name)) == z
+	const zip = ".zip"
+	return filepath.Ext(strings.ToLower(name)) == zip
 }

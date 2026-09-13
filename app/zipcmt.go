@@ -115,10 +115,12 @@ func Read(name string, raw bool) (string, error) {
 	if cmmt == "" {
 		return "", nil
 	}
+
 	const prefix = "TORRENTZIPPED-"
 	if strings.HasPrefix(cmmt, prefix) {
 		return "", nil
 	}
+
 	if strings.TrimSpace(cmmt) == "" {
 		return "", nil
 	}
@@ -126,24 +128,29 @@ func Read(name string, raw bool) (string, error) {
 	if raw {
 		return cmmt, nil
 	}
+
 	p := []byte(cmmt)
 	if ok := sauce.Contains(p); ok {
 		cmmt = string(sauce.Trim(p))
 	}
+
 	b, err := byter.Decode(charmap.CodePage437, cmmt)
 	if err != nil {
 		return "", fmt.Errorf("codepage 437 decoder: %w", err)
 	}
+
 	return string(b), nil
 }
 
 // WalkDirs walks the directories provided by the Arg slice for zip archives to extract any found comments.
 func (c *Config) WalkDirs() {
 	c.init()
+
 	// sanitize the export directory
 	if err := c.Clean(); err != nil {
 		c.Error(err)
 	}
+
 	// walk through the directories provided
 	for _, root := range c.Dirs {
 		_ = c.WalkDir(root)
@@ -154,6 +161,7 @@ func (c *Config) WalkDirs() {
 // The returned error is only used for testing purposes.
 func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 	c.init()
+
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			if errors.Is(err, fs.ErrPermission) {
@@ -244,9 +252,11 @@ func walkErrs(root string, err error) error {
 			return fmt.Errorf("%w: %s", ErrFlag, root)
 		}
 	}
+
 	if errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("%w: %s", ErrDirExist, root)
 	}
+
 	if errors.Is(err, fs.ErrPermission) {
 		f, err := os.Stat(root)
 		if err != nil {
@@ -258,6 +268,7 @@ func walkErrs(root string, err error) error {
 		const format = "walk directory: %s, %w %T"
 		return fmt.Errorf(format, root, err, err.Error())
 	}
+
 	return nil
 }
 
@@ -268,6 +279,7 @@ func (c *Config) Clean() error {
 	if name == "" {
 		return nil
 	}
+
 	name = filepath.Clean(name)
 	before, _, _ := strings.Cut(name, string(filepath.Separator))
 	if before == "~" {
@@ -277,6 +289,7 @@ func (c *Config) Clean() error {
 		}
 		name = strings.Replace(name, "~", dir, 1)
 	}
+
 	s, err := os.Stat(name)
 	if errors.Is(err, fs.ErrInvalid) {
 		return fmt.Errorf(format, name, ErrValid)
@@ -293,6 +306,7 @@ func (c *Config) Clean() error {
 	if !s.IsDir() {
 		return fmt.Errorf(format, name, ErrIsFile)
 	}
+
 	c.SaveName = name
 	return nil
 }
@@ -302,6 +316,7 @@ func (c *Config) Separator(name string) string {
 	if !c.Print || c.Quiet {
 		return ""
 	}
+
 	const fileID = 45
 	const pointer = " \u2500\u2500 "
 	if dir, err := os.UserHomeDir(); err == nil {
@@ -309,10 +324,12 @@ func (c *Config) Separator(name string) string {
 			name = strings.Replace(name, dir, "~", 1)
 		}
 	}
+
 	l := len(pointer) + len(name)
 	if l >= fileID {
 		return fmt.Sprintf("%s%s\n", pointer, name)
 	}
+
 	return fmt.Sprintf("\n%s%s %s\u2510\n", pointer, name, strings.Repeat("\u2500", fileID-l))
 }
 
@@ -326,9 +343,11 @@ func (c *Config) Status() string {
 		s := fmt.Sprintf("Scan finished, time taken: %s", c.Timer())
 		_ = c.WriteLog(s)
 	}
+
 	if c.Quiet {
 		return ""
 	}
+
 	a, cm, unq := "archive", "comment", ""
 	if c.Zips != 1 {
 		a += "s"
@@ -355,6 +374,7 @@ func (c *Config) Status() string {
 		s += color.Secondary.Sprint(", taking ") +
 			color.Primary.Sprintf("%s", c.Timer()) + "\n"
 	}
+
 	return s
 }
 
@@ -374,11 +394,13 @@ func (c *Config) lastMod(file fs.DirEntry) time.Time {
 	if c.Now {
 		return zero
 	}
+
 	i, err := file.Info()
 	if err != nil {
 		c.Error(err)
 		return zero
 	}
+
 	return i.ModTime()
 }
 
@@ -389,6 +411,7 @@ func (c *Config) save(dat save) bool {
 	if dat.cmmt == "" {
 		return false
 	}
+
 	if !dat.ow {
 		if s, err := os.Stat(dat.name); err == nil {
 			size := humanize.Bytes(uint64(s.Size())) //nolint:gosec
@@ -399,6 +422,7 @@ func (c *Config) save(dat save) bool {
 			return false
 		}
 	}
+
 	dst, err := os.Create(dat.name)
 	if err != nil {
 		c.Error(fmt.Errorf("%s: %w", dat.name, err))
@@ -422,11 +446,13 @@ func (c *Config) save(dat save) bool {
 		c.Error(fmt.Errorf("%s: %w", dat.name, err))
 		return false
 	}
+
 	if written == 0 {
 		if err1 := os.Remove(dat.name); err1 != nil {
 			c.Error(fmt.Errorf("%s: %w", dat.name, err1))
 		}
 	}
+
 	return true
 }
 

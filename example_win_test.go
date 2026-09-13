@@ -9,11 +9,11 @@ import (
 	"log"
 	"os"
 
-	zipcmt "github.com/bengarrett/zipcmt/pkg"
+	"github.com/bengarrett/zipcmt/app"
 )
 
 func ExampleConfig_clean() {
-	c := zipcmt.Config{
+	c := app.Config{
 		SaveName: "..//test///.",
 	}
 	if err := c.Clean(); err != nil {
@@ -24,7 +24,7 @@ func ExampleConfig_clean() {
 }
 
 func ExampleConfig_WalkDir() {
-	c := zipcmt.Config{
+	c := app.Config{
 		Print: true,
 		Dupes: true,
 	}

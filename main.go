@@ -28,13 +28,17 @@ var (
 	date    = "unset"
 )
 
-const winOS = "windows"
+const (
+	winOS    = "windows"
+	ellipsis = "\u2026"
+)
 
 func main() {
-	const ellipsis = "\u2026"
 	var configs app.Config
 	var noprint bool
+
 	configs.SetTimer()
+
 	flag.BoolVar(&noprint, "noprint", false,
 		"do not print comments to the terminal to improve the performance of the scan")
 	flag.BoolVar(&configs.NoWalk, "norecursive", false,
@@ -58,6 +62,7 @@ func main() {
 		"save the comments to this directory as unique named text files")
 	ver := flag.Bool("version", false,
 		"version and information for this program")
+
 	aliasA := flag.Bool("a", false, "alias for all")
 	aliasO := flag.Bool("o", false, "alias for overwrite")
 	aliasQ := flag.Bool("q", false, "alias for quiet")
@@ -65,11 +70,13 @@ func main() {
 	aliasS := flag.String("s", "", "alias for save")
 	aliasU := flag.Bool("p", false, "alias for noprint")
 	aliasV := flag.Bool("v", false, "alias for version")
+
 	flag.Usage = func() {
 		help(os.Stderr, true)
 	}
 	flag.Parse()
 	flags(ver, aliasV, aliasQ)
+
 	// parse aliases
 	if *aliasR {
 		configs.NoWalk = true
@@ -91,15 +98,19 @@ func main() {
 	if *aliasA {
 		configs.Dupes = true
 	}
+
 	// directories to scan
 	configs.Dirs = flag.Args()
+
 	// file and directory scan
 	configs.WalkDirs()
+
 	// summaries
 	fmt.Fprintln(os.Stdout, configs.Status())
 	if s := configs.LogName(); s != "" {
 		const format = "%s %s\n"
-		fmt.Fprintf(os.Stdout, format, "The log is found at", color.Primary.Sprint(s))
+		fmt.Fprintf(os.Stdout, format,
+			"The log is found at", color.Primary.Sprint(s))
 	}
 }
 
@@ -116,11 +127,13 @@ func flags(ver, aliasV, quiet *bool) {
 			os.Exit(0)
 		}
 	}
+
 	// print version information
 	if *ver || *aliasV {
 		info(os.Stdout, quiet)
 		os.Exit(0)
 	}
+
 	// print help if no arguments are given
 	w := os.Stderr
 	if len(flag.Args()) == 0 {
@@ -180,17 +193,20 @@ func helpWin(w io.Writer) {
 // Help, usage and examples.
 func help(w io.Writer, logo bool) {
 	var f *flag.Flag
+
 	if logo {
 		fmt.Fprintln(w, brand)
 		fmt.Fprint(w, " Zip Comment is the super-fast, batch zip file-comment viewer and extractor.\n"+
 			" Using a modern PC, zipcmt handles many thousands of archives per second.\n\n")
 	}
+
 	fmt.Fprintln(w, "Usage:")
 	if runtime.GOOS == winOS {
 		helpWin(w)
 	} else {
 		helpPosix(w)
 	}
+
 	fmt.Fprintln(w, "\nTips:")
 	optimial(w)
 	fmt.Fprintf(w, "     • Texts are saved as modern UTF-8.\n       If they look broken, use -raw for the originals.\n")
@@ -199,11 +215,13 @@ func help(w io.Writer, logo bool) {
 	fmt.Fprintf(w, "     • -export may clutter your source directories\n")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Options:")
+
 	const padding = 4
 	tw := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
 	names := []string{
 		"save", "overwrite", "noprint", "norecursive", "all", "now", "raw", "export", "quiet", "version",
 	}
+
 	for name := range slices.Values(names) {
 		f = flag.Lookup(name)
 		if f == nil {
@@ -212,6 +230,7 @@ func help(w io.Writer, logo bool) {
 		}
 		helper(tw, f, name)
 	}
+
 	tw.Flush()
 }
 
@@ -219,6 +238,7 @@ func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
 	if tw == nil || f == nil {
 		return
 	}
+
 	switch name {
 	case "save":
 		fmt.Fprintf(tw, "    -%v, -%v=DIRECTORY\t%v\n", "s", "save", "save comments to directory")
@@ -248,6 +268,7 @@ func optimial(w io.Writer) {
 	if runtime.GOOS != winOS || w == nil {
 		return
 	}
+
 	fmt.Fprintf(w, "     • Windows 'Real-time protection' dramatically reduces performance.\n")
 	fmt.Fprintln(w, "       For large scans you may wish to temporary disable it.")
 }
