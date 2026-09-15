@@ -96,8 +96,8 @@ func Self() (string, error) {
 	return exe, nil
 }
 
-// Valid checks that the named file is a known zip archive.
-func Valid(name string) bool {
+// ExtValid checks that the named file is a known zip archive.
+func ExtValid(name string) bool {
 	const zip = ".zip"
 	return filepath.Ext(strings.ToLower(name)) == zip
 }

@@ -35,13 +35,14 @@ type Config struct {
 	Overwrite bool     // Overwrite any previously exported comment text files.
 	// Now ignores the zip files last modification date,
 	// which is otherwise applied to the comment text file.
-	Now    bool
-	NoWalk bool // NoWalk ignores all subdirectories while scanning for zip archives.
-	Raw    bool // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
-	Print  bool // Print found comments to stdout.
-	Quiet  bool // Quiet suppresses the scan activity feedback to stdout.
-	Zips   int  // Zips is the number of zip files scanned.
-	Cmmts  int  // Cmmts are the number of zip comments found.
+	Now     bool
+	NoWalk  bool // NoWalk ignores all subdirectories while scanning for zip archives.
+	Raw     bool // Raw uses the original comment text encoding (CP437, ISO-8859...) instead of Unicode.
+	Regular bool // Regular files only.
+	Print   bool // Print found comments to stdout.
+	Quiet   bool // Quiet suppresses the scan activity feedback to stdout.
+	Zips    int  // Zips is the number of zip files scanned.
+	Cmmts   int  // Cmmts are the number of zip comments found.
 }
 
 type internal struct {
@@ -173,14 +174,20 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 			}
 			return err
 		}
+
 		// skip directories and non-zip files
-		if d.IsDir() || !cmnt.Valid(d.Name()) {
+		if d.IsDir() || !cmnt.ExtValid(d.Name()) {
 			return nil
 		}
-		// skip sub-directories
+		// if flag is set, skip sub-directories
 		if c.NoWalk && filepath.Dir(path) != filepath.Dir(root) {
 			return nil
 		}
+		// if flag is set, skip non-regular files such as symlinks
+		if c.Regular && !d.Type().IsRegular() {
+			return nil
+		}
+
 		c.Zips++
 		if !c.test && !c.Print && !c.Quiet {
 			fmt.Fprint(os.Stdout, "\r", color.Secondary.Sprint("Scanned "),
@@ -212,37 +219,17 @@ func (c *Config) WalkDir(root string) error { //nolint: cyclop,funlen,gocognit
 			stdout(cmmt)
 		}
 		// save the comment to a text file
-		dat := save{
-			name: "",
-			src:  path,
-			cmmt: cmmt,
-			mod:  c.lastMod(d),
-			ow:   c.Overwrite,
-		}
-		if c.Export {
-			dat.name = cmnt.ExportName(path)
-			if c.save(dat) {
-				_ = c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
-				c.saved++
-			}
-		}
-		if c.SaveName != "" {
-			dat.name = c.exports.Unique(path, c.SaveName)
-			c.names += uint(len(dat.name))
-			if c.save(dat) {
-				_ = c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
-					dat.name, humanize.Bytes(uint64(len(cmmt))), path))
-				c.saved++
-			}
-		}
+		c.comment(d, cmmt, path)
 		return err
 	})
+
 	if errs := walkErrs(root, err); errs != nil {
 		color.Error.Tips(fmt.Sprint(errs))
 	}
 	if err != nil {
 		return fmt.Errorf("walk dir %w: %s", err, root)
 	}
+
 	return nil
 }
 
@@ -413,8 +400,9 @@ func (c *Config) save(dat save) bool {
 	}
 
 	if !dat.ow {
-		if s, err := os.Stat(dat.name); err == nil {
-			size := humanize.Bytes(uint64(s.Size())) //nolint:gosec
+		if file, err := os.Stat(dat.name); err == nil {
+			s := max(file.Size(), 0)
+			size := humanize.Bytes(uint64(s))
 			const format = "export skipped, file already exists: %s (%s)"
 			info := fmt.Sprintf(format, dat.name, size)
 			color.Info.Tips(info)
@@ -454,6 +442,35 @@ func (c *Config) save(dat save) bool {
 	}
 
 	return true
+}
+
+func (c *Config) comment(d fs.DirEntry, cmmt, path string) {
+	// save the comment to a text file
+	dat := save{
+		name: "",
+		src:  path,
+		cmmt: cmmt,
+		mod:  c.lastMod(d),
+		ow:   c.Overwrite,
+	}
+
+	if c.Export {
+		dat.name = cmnt.ExportName(path)
+		if c.save(dat) {
+			_ = c.WriteLog("SAVED: " + dat.name + humanize.Bytes(uint64(len(cmmt))))
+			c.saved++
+		}
+	}
+
+	if c.SaveName != "" {
+		dat.name = c.exports.Unique(path, c.SaveName)
+		c.names += uint(len(dat.name))
+		if c.save(dat) {
+			_ = c.WriteLog(fmt.Sprintf("SAVED: %s (%s) << %s",
+				dat.name, humanize.Bytes(uint64(len(cmmt))), path))
+			c.saved++
+		}
+	}
 }
 
 // stdout prints the cmmt with an ANSI reset command.

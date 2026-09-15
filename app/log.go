@@ -99,6 +99,7 @@ func (c *Config) WriteLog(s string) error {
 func (c *Config) logHeader(logger *log.Logger) {
 	w := new(tabwriter.Writer)
 	const tabWidth = 8
+
 	w.Init(logger.Writer(), 0, tabWidth, 0, '\t', 0)
 	fmt.Fprintln(w, "Zip Comment Log - Configurations and arguments")
 	fmt.Fprintln(w, "")
@@ -112,6 +113,7 @@ func (c *Config) logHeader(logger *log.Logger) {
 			break
 		}
 	}
+
 	fmt.Fprintln(w)
 	w.Flush()
 }
@@ -127,6 +129,5 @@ func logName() string {
 		}
 		name = path.Join(dir, filename)
 	}
-
 	return name
 }

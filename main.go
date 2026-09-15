@@ -39,6 +39,8 @@ func main() {
 
 	configs.SetTimer()
 
+	flag.BoolVar(&configs.Regular, "regular", false,
+		"only scan regular files, ignoring symlinks")
 	flag.BoolVar(&noprint, "noprint", false,
 		"do not print comments to the terminal to improve the performance of the scan")
 	flag.BoolVar(&configs.NoWalk, "norecursive", false,
@@ -64,6 +66,7 @@ func main() {
 		"version and information for this program")
 
 	aliasA := flag.Bool("a", false, "alias for all")
+	aliasF := flag.Bool("f", false, "alias for regular file")
 	aliasO := flag.Bool("o", false, "alias for overwrite")
 	aliasQ := flag.Bool("q", false, "alias for quiet")
 	aliasR := flag.Bool("r", false, "alias for norecursive")
@@ -78,6 +81,9 @@ func main() {
 	flags(ver, aliasV, aliasQ)
 
 	// parse aliases
+	if *aliasF {
+		configs.Regular = true
+	}
 	if *aliasR {
 		configs.NoWalk = true
 	}
@@ -219,7 +225,7 @@ func help(w io.Writer, logo bool) {
 	const padding = 4
 	tw := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
 	names := []string{
-		"save", "overwrite", "noprint", "norecursive", "all", "now", "raw", "export", "quiet", "version",
+		"save", "overwrite", "noprint", "norecursive", "regular", "all", "now", "raw", "export", "quiet", "version",
 	}
 
 	for name := range slices.Values(names) {
@@ -248,12 +254,14 @@ func helper(tw *tabwriter.Writer, f *flag.Flag, name string) {
 		fmt.Fprintf(tw, "    -p, -%v\t%v\n", "noprint", "suppress comment output (faster for large scans)")
 	case "norecursive":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "r", "norecursive", "no subdirectory traversal")
+	case "regular":
+		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "f", "regular", "regular files only, no symlinks")
 	case "all":
 		fmt.Fprintf(tw, "    -%v, -%v\t%v\n", "a", "all", "show all duplicates")
 	case "now":
 		fmt.Fprintf(tw, "    -%v\t%v\n", "now", "don't preserve dates")
 	case "raw":
-		fmt.Fprintf(tw, "    -%v\t%v\n", "raw", "use original encoding")
+		fmt.Fprintf(tw, "    -%v\t%v\n", "raw", "use original encoding (cp437, cp1252...)")
 	case "export":
 		fmt.Fprintf(tw, "    -%v\t%v\n", "export", "save alongside files")
 	case "quiet":

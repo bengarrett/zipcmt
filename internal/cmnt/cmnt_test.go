@@ -1,3 +1,4 @@
+//nolint:funlen
 package cmnt_test
 
 import (
@@ -102,14 +103,13 @@ func TestValid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := cmnt.Valid(tt.fname); got != tt.want {
+			if got := cmnt.ExtValid(tt.fname); got != tt.want {
 				t.Errorf("Valid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-//nolint:funlen
 func TestExport_Unique(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
