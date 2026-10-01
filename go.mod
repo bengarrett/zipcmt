@@ -6,7 +6,7 @@ go 1.26.8
 require (
 	github.com/bengarrett/retrotxtgo v1.2.2
 	github.com/bengarrett/sauce v1.2.9
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/gookit/color v1.6.1
 	github.com/muesli/go-app-paths v0.2.2
 	golang.org/x/text v0.42.0
