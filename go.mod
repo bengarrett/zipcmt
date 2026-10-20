@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.uber.org/nilaway v0.0.0-20251021214447-34f56b8c16b9 // indirect
