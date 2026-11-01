@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/bengarrett/retrotxtgo v1.2.3
-	github.com/bengarrett/sauce v1.2.10
+	github.com/bengarrett/sauce v1.2.11
 	github.com/dustin/go-humanize v1.1.0
 	github.com/gookit/color v1.6.3
 	github.com/muesli/go-app-paths v0.2.2
